@@ -22,6 +22,10 @@ from backend.academic_exporter import (
 from backend.fractal_analyzer import compute_fractal_dimension
 
 def process_single_file(input_file: str, engine: str, measure_mode: str, levels: int, profile: str, output_root: Path, export_high_level: bool):
+    if levels < 1:
+        print(f"Error: Invalid --levels '{levels}'. Number of grid levels must be >= 1.", file=sys.stderr)
+        sys.exit(1)
+
     print("============================================================")
     print("RASH-HIT Fractal Studio v1.0.0 - Running Analysis")
     print("============================================================")
@@ -74,14 +78,24 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
         skipped_list = []
         for r in results:
             lvl_num = r.level.level_idx
-            is_export_safe = (lvl_num <= 7) or export_high_level
+            if lvl_num <= 7:
+                is_export_safe = True
+            elif lvl_num == 8:
+                is_export_safe = export_high_level
+            else:
+                is_export_safe = False
+
             f_set = set(r.filled_cells_indices) if (r.filled_cells_indices and is_export_safe) else set()
-            
-            if not is_export_safe and lvl_num >= 8:
+
+            if not is_export_safe:
+                if lvl_num == 8:
+                    reason_msg = "Skipped by default policy (use --export-high-level-tables to include L08)."
+                else:
+                    reason_msg = "Skipped by safety policy (L09+ full table exports are permanently disabled)."
                 skipped_list.append({
                     "level": lvl_num,
-                    "artifact": "Cell Data Table XLSX",
-                    "reason": "Microsoft Excel row limits and safe export level policy."
+                    "artifact": "Full Cell Data Tables",
+                    "reason": reason_msg
                 })
 
             level_models.append(LevelReportModel(
@@ -151,6 +165,11 @@ def main():
     parser.add_argument("--export-high-level-tables", action="store_true", help="Force export cell tables for L08+")
 
     args = parser.parse_args()
+
+    if args.levels < 1:
+        print(f"Error: Invalid --levels '{args.levels}'. Number of grid levels must be >= 1.", file=sys.stderr)
+        sys.exit(1)
+
 
     target_input = args.input or args.dir
     if not target_input:

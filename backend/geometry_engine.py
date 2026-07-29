@@ -250,13 +250,23 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
     last_cubic_cp: Optional[Tuple[float, float]] = None
     last_quad_cp: Optional[Tuple[float, float]] = None
 
+    valid_commands = {'M', 'L', 'H', 'V', 'C', 'S', 'Q', 'T', 'A', 'Z'}
+    if not raw_list:
+        return []
+
+    if not isinstance(raw_list[0], str) or raw_list[0].upper() not in valid_commands:
+        raise ValueError(f"Malformed SVG path: must start with valid command (got '{raw_list[0]}')")
+
     idx = 0
     num_tokens = len(raw_list)
 
     cmd = ''
     while idx < num_tokens:
+        prev_idx = idx
         tok = raw_list[idx]
         if isinstance(tok, str):
+            if tok.upper() not in valid_commands:
+                raise ValueError(f"Unknown or unsupported SVG path command: '{tok}'")
             cmd = tok
             idx += 1
 

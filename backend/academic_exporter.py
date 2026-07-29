@@ -13,6 +13,16 @@ from pathlib import Path
 from typing import Union, List, Set, Tuple, Dict, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+def sanitize_output_slug(stem: str) -> str:
+    """Sanitizes input stem into a safe folder slug allowing only [a-zA-Z0-9_-]."""
+    if not stem:
+        return "motif"
+    clean = re.sub(r'[^a-zA-Z0-9_-]', '_', str(stem))
+    clean = clean.strip('-_')
+    if not clean or clean in ('.', '..'):
+        clean = "motif"
+    return clean
+
 from html import escape as html_escape
 
 def esc_html(value: object) -> str:
