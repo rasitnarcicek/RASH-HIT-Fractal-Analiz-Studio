@@ -3,6 +3,8 @@
 License: Apache-2.0
 Python: 3.9+
 ORCID: https://orcid.org/0009-0005-3423-255X
+DOI: https://doi.org/10.5281/zenodo.21693694
+Concept DOI: https://doi.org/10.5281/zenodo.21693695
 
 **RASH-HIT Fractal Studio** is a research-oriented computational software project for SVG-based vector geometry analysis, grid occupancy mapping, box-counting fractal dimension estimation, SVG Coordinate Map generation, and publication-ready research output generation.
 
@@ -405,7 +407,8 @@ If you use RASH-HIT Fractal Studio in your research, please cite the software us
   year      = {2026},
   version   = {1.0.0},
   publisher = {GitHub},
-  url       = {https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio},
+  doi       = {10.5281/zenodo.21693694},
+  url       = {https://doi.org/10.5281/zenodo.21693694},
   orcid     = {https://orcid.org/0009-0005-3423-255X},
   license   = {Apache-2.0}
 }
@@ -419,7 +422,8 @@ TI  - RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine
 PY  - 2026
 ET  - 1.0.0
 PB  - GitHub
-UR  - https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+DO  - 10.5281/zenodo.21693694
+UR  - https://doi.org/10.5281/zenodo.21693694
 ER  - 
 ```
 
@@ -466,3 +470,5 @@ Copyright © 2026 Mehmet Raşit Narçiçek.
 
 Mehmet Raşit Narçiçek  
 ORCID: https://orcid.org/0009-0005-3423-255X
+DOI: https://doi.org/10.5281/zenodo.21693694
+Concept DOI: https://doi.org/10.5281/zenodo.21693695
