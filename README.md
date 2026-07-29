@@ -384,7 +384,6 @@ Core dependencies include:
 - PyYAML
 - Pillow
 - tinycss2
-- pytest
 
 Shapely/GEOS is used for vector geometry predicates in the CPU Exact Vector Geometry Engine.
 

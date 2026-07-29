@@ -47,10 +47,3 @@ RASH-HIT Fractal Studio relies on third-party open-source computational software
 - **Usage**: Used for parsing SVG inline CSS style declarations.
 
 ---
-
-## 3. Testing & Quality Assurance
-
-### pytest
-- **Project**: pytest
-- **License**: MIT License
-- **Usage**: Test runner framework for unit and integration testing.
