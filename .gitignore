@@ -1,0 +1,47 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local IDE / system / workspace
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.gemini/
+.antigravity/
+
+# Generated outputs & logs
+outputs/
+output_reports/
+debug/
+logs/
+*.log
+task-*.log
+
+# Temporary build & patch scripts
+patch_*.py
+fix_*.py
+write_*.py
+make_*.py
+move_*.py
+update_*.py
+build_*.py
+*.tmp
+*.bak
+scratch/
+
+# Internal master architecture & benchmark files
+PROJE_MIMARI_VE_KOD_HARITASI.md
+PROJE_TUM_MIMARI_VE_KOD_HARITASI.md
+RASH_HIT_FRACTAL_STUDIO_MASTER_HARITA.md
+PERFORMANCE_BENCHMARK_AUTO_ENGINE_16J.md
+PERFORMANCE_BENCHMARK_GPU_AREA_16J.md
+GPU_SPARSE_CORRECTION_REPORT_16J.md

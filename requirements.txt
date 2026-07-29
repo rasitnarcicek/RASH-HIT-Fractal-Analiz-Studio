@@ -1,0 +1,8 @@
+numpy>=1.22.0
+shapely>=2.0.0
+openpyxl>=3.0.0
+PyMuPDF>=1.20.0
+PyYAML>=6.0
+Pillow>=9.0.0
+tinycss2>=1.1.0
+pytest>=7.0.0
