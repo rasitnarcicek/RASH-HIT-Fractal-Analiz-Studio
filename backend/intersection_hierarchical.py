@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2026 Mehmet Rasit Narcicek
+# Copyright 2026 Mehmet Raşit Narçiçek
+
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Mehmet Raşit Narçiçek
 #
 # intersection_hierarchical.py -- Hierarchical Quadtree Area Engine (Vectorized v2)
 #
