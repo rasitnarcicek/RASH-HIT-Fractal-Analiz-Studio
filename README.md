@@ -396,7 +396,7 @@ See `THIRD_PARTY_NOTICES.md` for dependency and license details.
 
 ## Citation
 
-If you use RASH-HIT Fractal Studio in research, please cite the software.
+If you use RASH-HIT Fractal Studio in your research, please cite the software using one of the following formats:
 
 ### BibTeX
 ```bibtex
@@ -412,11 +412,44 @@ If you use RASH-HIT Fractal Studio in research, please cite the software.
 }
 ```
 
-### APA
-> Narçiçek, M. R. (2026). RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine (Version 1.0.0) [Computer software]. GitHub. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+### RIS
+```ris
+TY  - COMP
+AU  - Narçiçek, Mehmet Raşit
+TI  - RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine
+PY  - 2026
+ET  - 1.0.0
+PB  - GitHub
+UR  - https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+ER  - 
+```
+
+### APA 7
+> Narçiçek, M. R. (2026). *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine* (Version 1.0.0) [Computer software]. GitHub. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+
+### AMA
+> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.0. GitHub; 2026. Available from: https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+
+### Chicago (Author-Date)
+> Narçiçek, Mehmet Raşit. 2026. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine." Version 1.0.0. GitHub. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.
+
+### EndNote
+> Narçiçek MR (2026) RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine (Version 1.0.0) [Computer software]. GitHub. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
 
 ### IEEE
-> M. R. Narçiçek, "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine," Version 1.0.0, GitHub, 2026. [Online]. Available: https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+> [1] M. R. Narçiçek, "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine," Version 1.0.0, GitHub, 2026. [Online]. Available: https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+
+### ISNAD
+> Narçiçek, Mehmet Raşit. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine". Version 1.0.0. GitHub, 2026. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.
+
+### JAMA
+> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.0. GitHub; 2026. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+
+### MLA (9th Edition)
+> Narçiçek, Mehmet Raşit. *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine*. Version 1.0.0, GitHub, 2026, https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.
+
+### Vancouver
+> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine [Computer software]. Version 1.0.0. GitHub; 2026. Available from: https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
 
 ---
 
