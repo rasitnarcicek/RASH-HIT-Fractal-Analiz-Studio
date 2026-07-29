@@ -70,7 +70,7 @@ def parse_transform_string(transform_str: str) -> np.ndarray:
             T = np.array([[1, tan_a, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float64)
         elif cmd == 'skewy':
             tan_a = math.tan(math.radians(args[0]))
-            T = np.array([[0, 1, 0], [tan_a, 1, 0], [0, 0, 1]], dtype=np.float64)
+            T = np.array([[1, 0, 0], [tan_a, 1, 0], [0, 0, 1]], dtype=np.float64)
 
         M = M @ T
 

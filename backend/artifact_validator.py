@@ -21,7 +21,7 @@ def parse_ascii_file(ascii_path: Path, cols: int, rows: int) -> np.ndarray:
                 chars = parts[1].strip()
                 if len(chars) == cols and row_idx < rows:
                     for c_idx, ch in enumerate(chars):
-                        if ch == "■":
+                        if ch in ("■", "1", "#", "X"):
                             matrix[row_idx, c_idx] = 1
                     row_idx += 1
     return matrix
@@ -36,7 +36,7 @@ def parse_mask_file(mask_path: Path, cols: int, rows: int) -> np.ndarray:
             bits = line.split("=", 1)[1].strip()
             if len(bits) == cols and row_idx < rows:
                 for c_idx, b in enumerate(bits):
-                    if b == "1":
+                    if b in ("1", "■", "#", "X"):
                         matrix[row_idx, c_idx] = 1
                 row_idx += 1
     return matrix

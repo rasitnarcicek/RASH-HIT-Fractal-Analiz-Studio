@@ -144,7 +144,7 @@ def main():
     parser.add_argument("--input", type=str, required=False, help="Input SVG file path")
     parser.add_argument("--dir", type=str, required=False, help="Directory path for batch processing all SVG files")
     parser.add_argument("--engine", type=str, default="cpu", choices=["cpu"], help="Engine selection (default: cpu)")
-    parser.add_argument("--measure", type=str, default="area", choices=["area", "outline"], help="Measurement mode (default: area)")
+    parser.add_argument("--measure", type=str, default="area", choices=["area"], help="Measurement mode (default: area)")
     parser.add_argument("--levels", type=int, default=7, help="Number of grid levels (default: 7)")
     parser.add_argument("--profile", type=str, default="lean", choices=["lean", "reproducible", "debug", "presentation"], help="Profiling mode (default: lean)")
     parser.add_argument("--output-dir", type=str, required=False, help="Custom output directory for exported reports")

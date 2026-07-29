@@ -13,6 +13,21 @@ from pathlib import Path
 from typing import Union, List, Set, Tuple, Dict, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+from html import escape as html_escape
+
+def esc_html(value: object) -> str:
+    return html_escape(str(value), quote=True)
+
+def esc_xml(value: object) -> str:
+    return (
+        str(value)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;")
+    )
+
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -173,7 +188,7 @@ def generate_pure_vector_svg(
             f'  <g transform="translate(10, {vh + 16.0:.4f})">',
             f'    <rect width="{vw:.4f}" height="{bar_h:.4f}" rx="6" fill="#1E293B"/>',
             f'    <text x="12" y="18" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#FFFFFF">Level {lvl_fmt} ({res_str})  •  Db = {model.db:.4f}  •  R² = {model.r2:.4f}</text>',
-            f'    <text x="12" y="34" font-family="sans-serif" font-size="8" fill="#94A3B8">Filled: {model_lvl.filled_cells:,}/{model_lvl.total_cells:,} ({model_lvl.occupancy_percent:.1f}%)  •  Time: {model_lvl.execution_time_ms:.2f}ms  •  {model.motif}</text>',
+            f'    <text x="12" y="34" font-family="sans-serif" font-size="8" fill="#94A3B8">Filled: {model_lvl.filled_cells:,}/{model_lvl.total_cells:,} ({model_lvl.occupancy_percent:.1f}%)  •  Time: {model_lvl.execution_time_ms:.2f}ms  •  {esc_html(model.motif)}</text>',
             '  </g>',
             '</svg>'
         ])
@@ -713,7 +728,7 @@ def generate_all_levels_ascii_book(model: AnalysisReportModel, out_dir_ascii: Pa
         "================================================================================",
         "          RASH-HIT Fractal Studio v1.0.0 - ALL-LEVELS ASCII MAP BOOK             ",
         "================================================================================",
-        f"Motif: {model.motif} | Date: {model.generated_at} | Db: {model.db:.4f} | R2: {model.r2:.4f}",
+        f"Motif: {esc_html(model.motif)} | Date: {model.generated_at} | Db: {model.db:.4f} | R2: {model.r2:.4f}",
         ""
     ]
     for lvl in model.levels:
@@ -1200,7 +1215,7 @@ def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Pa
         '  <meta charset="UTF-8">',
         '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
         '  <meta name="description" content="RASH-HIT Fractal Studio v1.0 - Academic Analysis Report">',
-        f'  <title>RASH-HIT Fractal Studio v1.0 - Academic Analysis Report ({model.motif})</title>',
+        f'  <title>RASH-HIT Fractal Studio v1.0 - Academic Analysis Report ({esc_html(model.motif)})</title>',
         "  <style>",
         "    :root {",
         "      --bg: #F8FAFC; --panel: #FFFFFF; --text: #111827; --muted: #4B5563;",
@@ -1241,12 +1256,12 @@ def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Pa
         '    <!-- 1. Header (Image-Free First Screen) -->',
         '    <div class="header">',
         '      <h1>RASH-HIT Fractal Studio v1.0 - Academic Analysis Report</h1>',
-        f'      <div class="subtitle">{model.motif} - Box-Counting Fractal Dimension Analysis &amp; Output Package</div>',
+        f'      <div class="subtitle">{esc_html(model.motif)} - Box-Counting Fractal Dimension Analysis &amp; Output Package</div>',
         '      <div class="meta-grid">',
         f'        <div><strong>Source File:</strong> {Path(model.source_file).name}</div>',
         f'        <div><strong>ViewBox:</strong> {model.viewbox_width:.2f} x {model.viewbox_height:.2f}</div>',
         f'        <div><strong>Geometries:</strong> {model.vector_geometry_count:,} elements</div>',
-        f'        <div><strong>Engine:</strong> {model.analysis_engine}</div>',
+        f'        <div><strong>Engine:</strong> {esc_html(model.analysis_engine)}</div>',
         f'        <div><strong>Generated:</strong> {model.generated_at}</div>',
         '      </div>',
         '    </div>',
@@ -1271,7 +1286,7 @@ def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Pa
         '        <tbody>',
         f'          <tr><td>Fractal Dimension (Db)</td><td style="font-weight:700;color:#1D4ED8;">{model.db:.4f}</td><td>Box-counting log-log regression slope</td></tr>',
         f'          <tr><td>Regression Fit (R²)</td><td style="font-weight:700;color:#166534;">{model.r2:.4f}</td><td>Log-log linear regression score</td></tr>',
-        f'          <tr><td>Analysis Engine</td><td>{model.analysis_engine}</td><td>Vector geometry intersection engine</td></tr>',
+        f'          <tr><td>Analysis Engine</td><td>{esc_html(model.analysis_engine)}</td><td>Vector geometry intersection engine</td></tr>',
         f'          <tr><td>Total Execution Time</td><td>{model.total_time_ms:.2f} ms</td><td>Pipeline execution time</td></tr>',
         '        </tbody>',
         '      </table>',
@@ -1360,7 +1375,7 @@ def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Pa
         '      <p>The box-counting fractal dimension Db is estimated via linear regression of log N(r) against log(1/r). Dynamic sheet counts and file counts are computed directly from the generated package.</p>',
         '    </div>',
         '    <!-- 10. Footer -->',
-        f'    <div class="footer"><p>Generated by RASH-HIT Fractal Studio v1.0 &mdash; {model.generated_at} &mdash; Engine: {model.analysis_engine}</p></div>',
+        f'    <div class="footer"><p>Generated by RASH-HIT Fractal Studio v1.0 &mdash; {model.generated_at} &mdash; Engine: {esc_html(model.analysis_engine)}</p></div>',
         '  </div>',
         '</body>',
         '</html>'
@@ -1378,7 +1393,7 @@ def generate_markdown_report(model: AnalysisReportModel, out_dir_report: Path) -
 
     lines = [
         f"# RASH-HIT Fractal Studio v1.0 - Academic Analysis Report",
-        f"**Motif:** `{model.motif}` | **Date:** `{model.generated_at}` | **Engine:** `{model.analysis_engine}`",
+        f"**Motif:** `{esc_html(model.motif)}` | **Date:** `{model.generated_at}` | **Engine:** `{esc_html(model.analysis_engine)}`",
         "",
         "## 1. Executive Summary & Geometry",
         f"- **Source File:** `{Path(model.source_file).name}`",
@@ -1437,7 +1452,7 @@ def generate_pdf_report(model: AnalysisReportModel, out_dir_report: Path) -> Pat
     # 1. Executive Top Header Banner Block
     page1.draw_rect(fitz.Rect(36, 36, 559, 92), fill=c_navy, color=None)
     page1.insert_text(fitz.Point(50, 60), "RASH-HIT FRACTAL STUDIO v1.0", fontsize=15, fontname="helv", color=c_white)
-    page1.insert_text(fitz.Point(50, 78), f"Academic Computation & Occupancy Report  •  Motif: {model.motif}", fontsize=9.5, fontname="helv", color=(0.57, 0.77, 0.99))
+    page1.insert_text(fitz.Point(50, 78), f"Academic Computation & Occupancy Report  •  Motif: {esc_html(model.motif)}", fontsize=9.5, fontname="helv", color=(0.57, 0.77, 0.99))
     
     # Motif Badge Box
     badge_rect = fitz.Rect(440, 50, 545, 76)
@@ -1538,7 +1553,7 @@ def generate_pdf_report(model: AnalysisReportModel, out_dir_report: Path) -> Pat
 
     # 5. Bottom Footer Bar & Academic Metadata
     page1.draw_line(fitz.Point(36, 796), fitz.Point(559, 796), color=c_navy, width=1.0)
-    page1.insert_text(fitz.Point(36, 810), f"RASH-HIT Fractal Studio v1.0  •  {model.generated_at}  •  Engine: {model.analysis_engine}", fontsize=7.5, fontname="helv", color=c_subtext)
+    page1.insert_text(fitz.Point(36, 810), f"RASH-HIT Fractal Studio v1.0  •  {model.generated_at}  •  Engine: {esc_html(model.analysis_engine)}", fontsize=7.5, fontname="helv", color=c_subtext)
     page1.insert_text(fitz.Point(36, 822), "Author: Mehmet Raşit Narçiçek  •  ORCID: https://orcid.org/0009-0005-3423-255X  •  License: Apache-2.0", fontsize=7.5, fontname="helv", color=c_subtext)
     page1.insert_text(fitz.Point(510, 810), "Page 1 of 1", fontsize=7.5, fontname="helv", color=c_navy)
 
@@ -1554,9 +1569,9 @@ def generate_terminal_log(model: AnalysisReportModel, out_dir_term: Path) -> Pat
         "+------------------------------------------------------------------------------+",
         "|               RASH-HIT Fractal Studio v1.0.0 - EXPORT TERMINAL LOG             |",
         "+------------------------------------------------------------------------------+",
-        f"  Motif Loaded       : {model.motif} ({model.viewbox_width:.2f} x {model.viewbox_height:.2f})",
+        f"  Motif Loaded       : {esc_html(model.motif)} ({model.viewbox_width:.2f} x {model.viewbox_height:.2f})",
         f"  Geometries         : {model.vector_geometry_count:,} vector elements",
-        f"  Analysis Engine    : {model.analysis_engine}",
+        f"  Analysis Engine    : {esc_html(model.analysis_engine)}",
         f"  Hardware Accel     : Not Used (CPU Exact Engine)",
         "+------------------------------------------------------------------------------+",
         "| Level | Grid     | Total Cells | Filled Cells | Empty Cells | Occupancy % | Time ms  |",
