@@ -397,6 +397,9 @@ See `THIRD_PARTY_NOTICES.md` for dependency and license details.
 
 ## Citation
 
+- **Version DOI**: https://doi.org/10.5281/zenodo.21693694
+- **Concept DOI**: https://doi.org/10.5281/zenodo.21693695
+
 If you use RASH-HIT Fractal Studio in your research, please cite the software using one of the following formats:
 
 ### BibTeX
@@ -428,31 +431,31 @@ ER  -
 ```
 
 ### APA 7
-> Narçiçek, M. R. (2026). *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine* (Version 1.0.0) [Computer software]. GitHub. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+> Narçiçek, M. R. (2026). *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.21693694
 
 ### AMA
-> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.0. GitHub; 2026. Available from: https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.0. GitHub; 2026. doi: 10.5281/zenodo.21693694. Available from: https://doi.org/10.5281/zenodo.21693694
 
 ### Chicago (Author-Date)
-> Narçiçek, Mehmet Raşit. 2026. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine." Version 1.0.0. GitHub. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.
+> Narçiçek, Mehmet Raşit. 2026. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine." Version 1.0.0. GitHub. https://doi.org/10.5281/zenodo.21693694.
 
 ### EndNote
-> Narçiçek MR (2026) RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine (Version 1.0.0) [Computer software]. GitHub. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+> Narçiçek MR (2026) RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.21693694
 
 ### IEEE
-> [1] M. R. Narçiçek, "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine," Version 1.0.0, GitHub, 2026. [Online]. Available: https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+> [1] M. R. Narçiçek, "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine," Version 1.0.0, GitHub, 2026, doi: 10.5281/zenodo.21693694.
 
 ### ISNAD
-> Narçiçek, Mehmet Raşit. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine". Version 1.0.0. GitHub, 2026. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.
+> Narçiçek, Mehmet Raşit. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine". Version 1.0.0. GitHub, 2026. https://doi.org/10.5281/zenodo.21693694.
 
 ### JAMA
-> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.0. GitHub; 2026. https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.0. GitHub; 2026. https://doi.org/10.5281/zenodo.21693694
 
 ### MLA (9th Edition)
-> Narçiçek, Mehmet Raşit. *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine*. Version 1.0.0, GitHub, 2026, https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.
+> Narçiçek, Mehmet Raşit. *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine*. Version 1.0.0, GitHub, 2026, https://doi.org/10.5281/zenodo.21693694.
 
 ### Vancouver
-> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine [Computer software]. Version 1.0.0. GitHub; 2026. Available from: https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio
+> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine [Computer software]. Version 1.0.0. GitHub; 2026. Available from: https://doi.org/10.5281/zenodo.21693694
 
 ---
 
@@ -468,7 +471,7 @@ Copyright © 2026 Mehmet Raşit Narçiçek.
 
 ## Author
 
-Mehmet Raşit Narçiçek  
-ORCID: https://orcid.org/0009-0005-3423-255X
-DOI: https://doi.org/10.5281/zenodo.21693694
-Concept DOI: https://doi.org/10.5281/zenodo.21693695
+- **Name**: Mehmet Raşit Narçiçek
+- **ORCID**: https://orcid.org/0009-0005-3423-255X
+- **DOI**: https://doi.org/10.5281/zenodo.21693694
+- **Concept DOI**: https://doi.org/10.5281/zenodo.21693695
