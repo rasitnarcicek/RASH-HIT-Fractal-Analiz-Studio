@@ -21,18 +21,21 @@ class FractalAnalysisResult:
         fractal_dimension_db: float,
         r2_score: float,
         level_results: List[CPULevelResult],
-        scaling_levels_used: List[int]
+        scaling_levels_used: List[int],
+        warnings: List[str] = None
     ):
         self.fractal_dimension_db = fractal_dimension_db
         self.r2_score = r2_score
         self.level_results = level_results
         self.scaling_levels_used = scaling_levels_used
+        self.warnings = warnings or []
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             'fractal_dimension_db': round(self.fractal_dimension_db, 4),
             'r2_score': round(self.r2_score, 4),
             'scaling_levels_used': self.scaling_levels_used,
+            'warnings': self.warnings,
             'levels': [res.to_dict() for res in self.level_results]
         }
 
@@ -44,8 +47,10 @@ def compute_fractal_dimension(
     """
     Computes linear regression slope Db = d(log N) / d(log 1/eps) and R^2 score.
     """
+    warnings: List[str] = []
     if not level_results:
-        return FractalAnalysisResult(0.0, 0.0, [], [])
+        warnings.append("No level results were produced.")
+        return FractalAnalysisResult(0.0, 0.0, [], [], warnings=warnings)
 
     # Filter levels if specific selection is requested
     if selected_levels:
@@ -65,7 +70,8 @@ def compute_fractal_dimension(
             used_indices.append(r.level.level_idx)
 
     if len(x_vals) < 2:
-        return FractalAnalysisResult(0.0, 0.0, level_results, used_indices)
+        warnings.append("Insufficient non-zero occupied levels for regression (need at least 2).")
+        return FractalAnalysisResult(0.0, 0.0, level_results, used_indices, warnings=warnings)
 
     x = np.array(x_vals, dtype=np.float64)
     y = np.array(y_vals, dtype=np.float64)
@@ -78,6 +84,10 @@ def compute_fractal_dimension(
     y_pred = m * x + c
     ss_res = np.sum((y - y_pred) ** 2)
     ss_tot = np.sum((y - np.mean(y)) ** 2)
-    r2 = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 1.0
+    if ss_tot > 0:
+        r2 = 1.0 - (ss_res / ss_tot)
+    else:
+        r2 = 0.0
+        warnings.append("R² undefined due to zero variance in log(N); reported as 0.0.")
 
-    return FractalAnalysisResult(float(m), float(r2), level_results, used_indices)
+    return FractalAnalysisResult(float(m), float(r2), level_results, used_indices, warnings=warnings)

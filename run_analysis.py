@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -20,6 +21,20 @@ from backend.academic_exporter import (
     LevelReportModel
 )
 from backend.fractal_analyzer import compute_fractal_dimension
+
+def sanitize_output_stem(raw_stem: str) -> str:
+    stem = (raw_stem or "").strip()
+    stem = stem.replace("\\", "_").replace("/", "_")
+    stem = re.sub(r'[^A-Za-z0-9._-]+', "_", stem)
+    stem = stem.strip("._-")
+    if not stem:
+        stem = "untitled"
+    if stem in {".", ".."}:
+        stem = "untitled"
+    if len(stem) > 120:
+        stem = stem[:120].rstrip("._-")
+    return stem or "untitled"
+
 
 def process_single_file(input_file: str, engine: str, measure_mode: str, levels: int, profile: str, output_root: Path, export_high_level: bool):
     print("============================================================")
@@ -46,7 +61,7 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
     grid_plan = create_grid_plan(loader.viewbox, vw, vh, num_levels=levels)
 
     # Execute Engine
-    need_cell_indices = export_high_level or (levels <= 8)
+    need_cell_indices = True
 
     t0_calc = time.perf_counter()
     results = analyze_grid_cpu_area(geoms, grid_plan, return_cell_indices=need_cell_indices)
@@ -74,14 +89,17 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
         skipped_list = []
         for r in results:
             lvl_num = r.level.level_idx
-            is_export_safe = (lvl_num <= 7) or export_high_level
+            is_export_safe = (lvl_num <= 7) or (lvl_num == 8 and export_high_level)
             f_set = set(r.filled_cells_indices) if (r.filled_cells_indices and is_export_safe) else set()
             
             if not is_export_safe and lvl_num >= 8:
+                reason = "Level 08 full table export is optional. Use --export-high-level-tables to enable."
+                if lvl_num >= 9:
+                    reason = "L09+ full cell-level XLSX export is disabled by policy."
                 skipped_list.append({
                     "level": lvl_num,
                     "artifact": "Cell Data Table XLSX",
-                    "reason": "Microsoft Excel row limits and safe export level policy."
+                    "reason": reason
                 })
 
             level_models.append(LevelReportModel(
@@ -103,7 +121,7 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
             ))
 
         fractal_res = compute_fractal_dimension(results)
-        safe_stem = input_path.stem
+        safe_stem = sanitize_output_stem(input_path.stem)
 
         report_model = AnalysisReportModel(
             motif=safe_stem,
@@ -123,7 +141,8 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
             r2=fractal_res.r2_score,
             total_time_ms=calc_time_ms,
             hardware_info="CPU Exact Vector Geometry Engine",
-            levels=level_models
+            levels=level_models,
+            warnings=loader.warnings + fractal_res.warnings
         )
 
         manifest_path = export_academic_package_v3(
@@ -141,10 +160,11 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
 
 def main():
     parser = argparse.ArgumentParser(description="RASH-HIT Fractal Studio - Vector Geometry Analysis & Box-Counting Engine")
-    parser.add_argument("--input", type=str, required=False, help="Input SVG file path")
-    parser.add_argument("--dir", type=str, required=False, help="Directory path for batch processing all SVG files")
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--input", type=str, required=False, help="Input SVG file path")
+    input_group.add_argument("--dir", type=str, required=False, help="Directory path for batch processing all SVG files")
     parser.add_argument("--engine", type=str, default="cpu", choices=["cpu"], help="Engine selection (default: cpu)")
-    parser.add_argument("--measure", type=str, default="area", choices=["area", "outline"], help="Measurement mode (default: area)")
+    parser.add_argument("--measure", type=str, default="area", choices=["area"], help="Measurement mode (default: area)")
     parser.add_argument("--levels", type=int, default=7, help="Number of grid levels (default: 7)")
     parser.add_argument("--profile", type=str, default="lean", choices=["lean", "reproducible", "debug", "presentation"], help="Profiling mode (default: lean)")
     parser.add_argument("--output-dir", type=str, required=False, help="Custom output directory for exported reports")
@@ -152,13 +172,15 @@ def main():
 
     args = parser.parse_args()
 
-    target_input = args.input or args.dir
-    if not target_input:
-        parser.print_help()
-        return
+    if args.levels < 1:
+        parser.error("--levels must be >= 1.")
+    if args.levels > 12:
+        print("[!] Warning: levels > 12 may require high memory and long runtime.", file=sys.stderr)
 
     output_root = Path(args.output_dir) if args.output_dir else Path(__file__).resolve().parent / "outputs"
+    output_root = output_root.resolve()
 
+    target_input = args.input or args.dir
     target_path = Path(target_input)
     if target_path.is_file():
         process_single_file(str(target_path), args.engine, args.measure, args.levels, args.profile, output_root, args.export_high_level_tables)

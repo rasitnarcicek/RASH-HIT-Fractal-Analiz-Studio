@@ -70,7 +70,7 @@ def parse_transform_string(transform_str: str) -> np.ndarray:
             T = np.array([[1, tan_a, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float64)
         elif cmd == 'skewy':
             tan_a = math.tan(math.radians(args[0]))
-            T = np.array([[0, 1, 0], [tan_a, 1, 0], [0, 0, 1]], dtype=np.float64)
+            T = np.array([[1, 0, 0], [tan_a, 1, 0], [0, 0, 1]], dtype=np.float64)
 
         M = M @ T
 
@@ -254,14 +254,33 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
     num_tokens = len(raw_list)
 
     cmd = ''
+    required_operands = {
+        'M': 2, 'L': 2, 'H': 1, 'V': 1,
+        'C': 6, 'S': 4, 'Q': 4, 'T': 2,
+        'A': 7, 'Z': 0
+    }
+
+    def ensure_operands(start_idx: int, count: int, command: str):
+        if start_idx + count > num_tokens:
+            raise ValueError(f"Incomplete SVG path command '{command}' near token index {start_idx}.")
+        for j in range(start_idx, start_idx + count):
+            if isinstance(raw_list[j], str):
+                raise ValueError(f"Unexpected command token while reading operands for '{command}'.")
+
     while idx < num_tokens:
         tok = raw_list[idx]
         if isinstance(tok, str):
             cmd = tok
             idx += 1
+        elif not cmd:
+            raise ValueError("SVG path data must start with a command token.")
 
         is_rel = cmd.islower()
         c = cmd.upper()
+        if c not in required_operands:
+            raise ValueError(f"Unsupported SVG path command '{cmd}'.")
+
+        ensure_operands(idx, required_operands[c], c)
 
         if c == 'M':
             x = raw_list[idx] + (curr_x if is_rel else 0.0)
@@ -372,6 +391,8 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
             curr_x, curr_y = start_x, start_y
             if current_path and current_path[0] != current_path[-1]:
                 current_path.append((start_x, start_y))
+            if idx < num_tokens and not isinstance(raw_list[idx], str):
+                raise ValueError("Unexpected numeric token after 'Z' command without a new command.")
 
         if c not in ('C', 'S'):
             last_cubic_cp = None
