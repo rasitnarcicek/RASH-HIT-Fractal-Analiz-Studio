@@ -374,8 +374,6 @@ RASH-HIT Fractal Studio integrates specialized verification modules to ensure da
 4. **Multi-Source Artifact Cross-Validator (`backend/artifact_validator.py`)**:
    `validate_and_generate_real_diff_reports()` performs a 4-way cross-verification matrix between ASCII grid books (`*_ascii.txt`), Run-Length Encoded JSON files (`*_rle.json`), SVG coordinate maps (`*_map.svg`), and optional PNG renderings to guarantee $100\%$ cell occupancy consistency across all export formats.
 
-5. **Excel Auto-Fit Layout (`auto_fit_sheet`)**:
-   Multi-sheet Excel workbooks (`workbook.xlsx`) dynamically measure max string lengths per column and apply adaptive font padding for publication-ready presentation.
 
 ---
 
