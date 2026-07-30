@@ -1268,7 +1268,7 @@ def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Pa
         '      <h1>RASH-HIT Fractal Studio v1.0 - Academic Analysis Report</h1>',
         f'      <div class="subtitle">{esc_html(model.motif)} - Box-Counting Fractal Dimension Analysis &amp; Output Package</div>',
         '      <div class="meta-grid">',
-        f'        <div><strong>Source File:</strong> {Path(model.source_file).name}</div>',
+        f'        <div><strong>Source File:</strong> {esc_html(Path(model.source_file).name)}</div>',
         f'        <div><strong>ViewBox:</strong> {model.viewbox_width:.2f} x {model.viewbox_height:.2f}</div>',
         f'        <div><strong>Geometries:</strong> {model.vector_geometry_count:,} elements</div>',
         f'        <div><strong>Engine:</strong> {esc_html(model.analysis_engine)}</div>',

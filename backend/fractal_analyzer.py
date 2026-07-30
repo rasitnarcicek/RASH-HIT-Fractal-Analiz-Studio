@@ -78,6 +78,12 @@ def compute_fractal_dimension(
     y_pred = m * x + c
     ss_res = np.sum((y - y_pred) ** 2)
     ss_tot = np.sum((y - np.mean(y)) ** 2)
-    r2 = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 1.0
+    if ss_tot > 0:
+        r2 = 1.0 - (ss_res / ss_tot)
+    else:
+        # Zero variance: all log(N) values are identical (e.g. constant fill counts).
+        # Return NaN to signal a degenerate fit rather than overstating quality.
+        import math as _math
+        r2 = _math.nan
 
     return FractalAnalysisResult(float(m), float(r2), level_results, used_indices)

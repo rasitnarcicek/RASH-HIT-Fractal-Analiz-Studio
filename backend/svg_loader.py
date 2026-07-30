@@ -10,7 +10,17 @@ Detects advanced features (clipPath, mask, fill-rule) and records warnings for r
 
 from __future__ import annotations
 import re
-import xml.etree.ElementTree as ET
+# Use defusedxml for safe XML parsing; fall back to stdlib with a warning.
+try:
+    import defusedxml.ElementTree as ET  # type: ignore[import]
+except ImportError:  # pragma: no cover
+    import warnings as _warnings
+    _warnings.warn(
+        "defusedxml not installed. Falling back to stdlib xml.etree.ElementTree. "
+        "Install defusedxml>=0.7.1 for XML attack protection.",
+        ImportWarning, stacklevel=2,
+    )
+    import xml.etree.ElementTree as ET  # type: ignore[assignment]
 from typing import Dict, List, Tuple, Optional, Any
 
 try:
@@ -134,10 +144,28 @@ class SVGNode:
         self.display = styles.get('display', 'inline')
         self.visibility = styles.get('visibility', 'visible')
 
-        # Flags
-        self.has_fill = (self.fill not in ('none', 'transparent', '')) and (self.opacity > 0)
-        self.has_stroke = (self.stroke not in ('none', 'transparent', '')) and (self.stroke_width > 0) and (self.opacity > 0)
-        self.is_visible = (self.display != 'none') and (self.visibility != 'hidden') and (self.opacity > 0) and (self.has_fill or self.has_stroke)
+        # Per-channel alpha: effective alpha = opacity * channel_opacity (SVG spec)
+        # fill-opacity and stroke-opacity default to 1.0 when not specified.
+        _fill_opacity = float(styles.get('fill-opacity', '1.0'))
+        _stroke_opacity = float(styles.get('stroke-opacity', '1.0'))
+        self.effective_fill_alpha = self.opacity * _fill_opacity
+        self.effective_stroke_alpha = self.opacity * _stroke_opacity
+
+        # Flags: use per-channel alpha so fill-opacity:0 correctly marks fill invisible.
+        self.has_fill = (
+            self.fill not in ('none', 'transparent', '')
+            and self.effective_fill_alpha > 0
+        )
+        self.has_stroke = (
+            self.stroke not in ('none', 'transparent', '')
+            and self.stroke_width > 0
+            and self.effective_stroke_alpha > 0
+        )
+        self.is_visible = (
+            self.display != 'none'
+            and self.visibility != 'hidden'
+            and (self.has_fill or self.has_stroke)
+        )
 
 
 class SVGLoader:

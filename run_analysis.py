@@ -17,7 +17,8 @@ from backend.intersection_cpu_area import analyze_grid_cpu_area
 from backend.academic_exporter import (
     export_academic_package_v3,
     AnalysisReportModel,
-    LevelReportModel
+    LevelReportModel,
+    sanitize_output_slug,
 )
 from backend.fractal_analyzer import compute_fractal_dimension
 
@@ -117,7 +118,7 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
             ))
 
         fractal_res = compute_fractal_dimension(results)
-        safe_stem = input_path.stem
+        safe_stem = sanitize_output_slug(input_path.stem)
 
         report_model = AnalysisReportModel(
             motif=safe_stem,
@@ -155,8 +156,9 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
 
 def main():
     parser = argparse.ArgumentParser(description="RASH-HIT Fractal Studio - Vector Geometry Analysis & Box-Counting Engine")
-    parser.add_argument("--input", type=str, required=False, help="Input SVG file path")
-    parser.add_argument("--dir", type=str, required=False, help="Directory path for batch processing all SVG files")
+    _input_group = parser.add_mutually_exclusive_group(required=False)
+    _input_group.add_argument("--input", type=str, help="Input SVG file path")
+    _input_group.add_argument("--dir", type=str, help="Directory path for batch processing all SVG files")
     parser.add_argument("--engine", type=str, default="cpu", choices=["cpu"], help="Engine selection (default: cpu)")
     parser.add_argument("--measure", type=str, default="area", choices=["area"], help="Measurement mode (default: area)")
     parser.add_argument("--levels", type=int, default=7, help="Number of grid levels (default: 7)")
