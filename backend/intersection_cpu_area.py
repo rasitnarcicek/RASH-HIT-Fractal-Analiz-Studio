@@ -9,12 +9,10 @@ It avoids AABB-only final decisions and counts cells based on actual fill/stroke
 """
 
 from __future__ import annotations
-import time
-from typing import List, Tuple, Optional, Dict, Any
-import numpy as np
+from typing import List
 
 from backend.geometry_engine import ParsedGeometry
-from backend.grid_planner import GridPlan, GridLevel
+from backend.grid_planner import GridPlan
 from backend.intersection_cpu import CPULevelResult
 from backend.intersection_hierarchical import analyze_grid_hierarchical
 

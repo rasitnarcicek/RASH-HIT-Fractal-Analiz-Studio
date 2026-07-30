@@ -21,15 +21,14 @@
 
 from __future__ import annotations
 import time
-from typing import List, Tuple, Optional
 
 import numpy as np
 import shapely
 from shapely.strtree import STRtree
 
 from backend.geometry_engine import ParsedGeometry
-from backend.grid_planner import GridPlan, GridLevel
-from backend.intersection_cpu import CPULevelResult, CellDebugInfo
+from backend.grid_planner import GridPlan
+from backend.intersection_cpu import CPULevelResult
 
 
 class HierarchicalLevelResult:

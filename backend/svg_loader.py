@@ -21,7 +21,7 @@ except ImportError:  # pragma: no cover
         ImportWarning, stacklevel=2,
     )
     import xml.etree.ElementTree as ET  # type: ignore[assignment]
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional
 
 try:
     import tinycss2

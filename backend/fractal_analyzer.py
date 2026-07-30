@@ -8,7 +8,7 @@ Calculates linear least squares log-log regression across grid levels.
 
 from __future__ import annotations
 import math
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 import numpy as np
 
 from backend.intersection_cpu import CPULevelResult

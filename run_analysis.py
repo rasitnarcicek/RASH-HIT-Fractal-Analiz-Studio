@@ -6,13 +6,12 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import List, Tuple, Dict, Any, Optional
+from typing import List
 from datetime import datetime
 
 from backend.svg_loader import SVGLoader
 from backend.geometry_engine import extract_node_geometries, ParsedGeometry
-from backend.grid_planner import create_grid_plan, GridPlan
-from backend.intersection_cpu import CPULevelResult
+from backend.grid_planner import create_grid_plan
 from backend.intersection_cpu_area import analyze_grid_cpu_area
 from backend.academic_exporter import (
     export_academic_package_v3,
@@ -33,7 +32,7 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
     print(f"Input File      : {os.path.basename(input_file)}")
     print(f"Grid Levels     : L01..L{levels:02d}")
     print(f"Measure Mode    : {measure_mode}")
-    print(f"Selected Engine : CPU Exact Vector Geometry Engine")
+    print("Selected Engine : CPU Exact Vector Geometry Engine")
     print("------------------------------------------------------------")
 
     # Load SVG
@@ -145,7 +144,7 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
             levels=level_models
         )
 
-        manifest_path = export_academic_package_v3(
+        export_academic_package_v3(
             model=report_model,
             output_root=output_root,
             profile=profile,

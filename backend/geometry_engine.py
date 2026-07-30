@@ -10,9 +10,9 @@ Applies 2D affine transformation matrices and builds Shapely geometries for exac
 from __future__ import annotations
 import math
 import re
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional, Any
 import numpy as np
-from shapely.geometry import Polygon, LineString, MultiLineString, GeometryCollection
+from shapely.geometry import Polygon, LineString
 from shapely.ops import unary_union
 
 from backend.svg_loader import SVGNode
@@ -262,7 +262,6 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
 
     cmd = ''
     while idx < num_tokens:
-        prev_idx = idx
         tok = raw_list[idx]
         if isinstance(tok, str):
             if tok.upper() not in valid_commands:
