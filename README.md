@@ -1,272 +1,82 @@
-﻿# RASH-HIT Fractal Studio
+# RASH-HIT Fractal Studio
 
-- **License**: Apache-2.0
-- **Python**: 3.9+
-- **ORCID**: https://orcid.org/0009-0005-3423-255X
-- **Concept DOI**: https://doi.org/10.5281/zenodo.21693694
-- **Version DOI**: https://doi.org/10.5281/zenodo.21694567
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-green.svg)](https://www.python.org/)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21693694-blue.svg)](https://doi.org/10.5281/zenodo.21693694)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
 
-**RASH-HIT Fractal Studio** is a research-oriented computational software project for SVG-based vector geometry analysis, grid occupancy mapping, box-counting fractal dimension estimation, SVG Coordinate Map generation, and publication-ready research output generation.
+**RASH-HIT Fractal Studio** is a research-grade, raster-free computational software engine for SVG vector geometry analysis, grid occupancy mapping, box-counting fractal dimension ($D_b$) estimation, SVG Coordinate Map rendering, and academic research package generation.
 
-The project analyzes design, pattern, ornament, motif, textile, visual heritage, architectural drawing, and other SVG-based design artifacts directly from their vector geometry. Instead of converting SVG files into raster images, the system reads SVG code and geometry definitions, extracts fill and stroke shapes, overlays a multilevel grid on the SVG coordinate space, and counts whether each grid cell is filled or empty according to vector geometry intersection.
-
-RASH-HIT Fractal Studio uses a **CPU Exact Vector Geometry Engine** based on Shapely/GEOS predicates to perform raster-free box-counting analysis directly on SVG fill and stroke geometries.
-
----
-
-## Overview
-
-Many design and motif studies work with visual forms that are already stored as vector data. When these designs are converted into PNG or other raster images before analysis, geometric detail can be affected by resolution, anti-aliasing, scaling, and pixel-level artifacts.
-
-RASH-HIT Fractal Studio avoids this by working directly with SVG vector geometry.
-
-The system reads:
-- SVG `viewBox`
-- SVG width and height
-- `path`, `polygon`, `polyline`, `line`, `rect`, `circle`, and `ellipse` elements
-- fill attributes
-- stroke attributes
-- stroke width
-- inline styles
-- class-based CSS styles
-- transform matrices
-- curves and arcs converted into vector segments
-
-The software then creates a multilevel grid over the SVG coordinate space. A grid cell is counted as **filled** when any SVG fill or stroke geometry touches, crosses, covers, or intersects the cell. A grid cell is counted as **empty** when no fill or stroke geometry contacts the cell.
-
-The filled cell counts across grid levels are used to estimate the box-counting fractal dimension (`Db`).
-
----
-
-## Design and Motif Analysis Context
-
-RASH-HIT Fractal Studio is intended for computational analysis of visual design structures stored as SVG files.
-
-Typical use cases include:
-- Traditional or contemporary motifs
-- Textile and pattern designs
-- Decorative ornaments
-- Symbolic forms
-- Architectural details
-- Visual heritage drawings
-- Vector-based design studies
-- Experimental computational design artifacts
-
-The main idea is simple:
-
-```text
-Design object saved as SVG
-→ SVG code is read directly
-→ fill and stroke geometry is extracted
-→ grid cells are placed over SVG coordinate space
-→ each cell is tested for vector geometry contact
-→ filled and empty cells are counted
-→ box-counting fractal dimension is estimated
-```
-
-This keeps the analysis tied to the original vector geometry instead of a rasterized image approximation.
+Unlike conventional fractal analysis tools that convert vector artwork into PNG/JPEG pixels—introducing resolution loss, anti-aliasing artifacts, and scaling distortion—RASH-HIT Fractal Studio evaluates raw SVG vector geometry directly in floating-point coordinate space using C++ GEOS spatial predicates via Shapely.
 
 ---
 
 ## Key Features
 
-- **Raster-free SVG geometry analysis**  
-  The system analyzes SVG code and vector geometry directly, without using exported PNG or pixel images.
-
-- **Design and motif research workflow**  
-  Suitable for computational analysis of motifs, ornaments, textile patterns, architectural details, symbolic forms, decorative compositions, and other SVG-based design objects.
-
-- **Direct fill and stroke handling**  
-  Filled polygons, closed paths, line paths, polylines, polygons, and stroke-based geometry are included in the occupancy decision.
-
-- **Strict 2x Power-of-Two Grid Subdivision**  
-  Grid levels strictly double resolution ($2^i$) across levels without aspect-ratio rounding drift, guaranteeing quadtree parent-child cell containment.
-
-- **Hardened Vector & XML Parser**  
-  Uses `defusedxml` for secure SVG XML parsing and enforces bounds checking across all SVG path commands (`M, L, H, V, C, S, Q, T, A`).
-
-- **Aspect-ratio-aware grid planning**  
-  Grid levels are generated according to the SVG `viewBox` ratio so that the analysis space preserves the original design proportions.
-
-- **CPU Exact Vector Geometry Engine**  
-  Uses Shapely/GEOS geometry predicates to evaluate whether SVG fill or stroke geometry intersects each grid cell.
-
-- **Filled and empty cell accounting**  
-  Each level reports total cells, filled cells, empty cells, fill ratio, and occupancy percentage.
-
-- **Box-counting fractal dimension estimation**  
-  Estimates `Db` using log-log regression based on occupied cell counts across grid levels.
-
-- **Publication-ready output package**  
-  Generates PDF, HTML, Markdown, Excel workbook, per-level XLSX tables, SVG coordinate maps, terminal log, and manifest metadata.
-
-- **High-level output export policy**  
-  Full cell-level XLSX exports are kept to practical levels by default. Higher levels remain available in summary reports and manifest metadata.
-
-- **Reproducibility metadata**  
-  Exports input SHA-256 hash, software version, engine settings, grid labels, dependency versions, runtime environment data, and output metadata.
+- **Direct Vector Geometry Analysis**: Evaluates SVG `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, and `polygon` elements without rasterization.
+- **Complete Fill & Stroke Predicates**: Evaluates closed shape fills (handling `nonzero` and `evenodd` fill rules) and stroke line widths.
+- **Strict $2^i$ Power-of-Two Grid Planner**: Generates aspect-ratio-aware grid resolution series ($W_{\text{cell}} \approx H_{\text{cell}}$) that strictly double in grid count ($2^i$) across levels, guaranteeing quadtree parent-child containment without rounding drift.
+- **Unlimited Level Scaling**: Supports arbitrary level depth (`--levels N`, $N \ge 1$). Default is 7 levels ($L01$--$L07$).
+- **Robust Curve Flattening**: Converts Cubic/Quadratic Bézier curves and elliptical arcs (`A` commands) to vector segments with adaptive step tolerance.
+- **Hardened XML Parser**: Uses `defusedxml` to prevent XML External Entity (XXE) vulnerabilities and enforces bounds checking across all SVG path commands.
+- **Publication-Ready Academic Export**: Generates PDF reports, interactive HTML viewers, Markdown summaries, Excel workbooks (`.xlsx`), per-level cell datasets, pure vector SVG grid maps, terminal execution logs, and SHA-256 reproducibility manifests.
 
 ---
 
-## Computational Workflow
+## Computational Method & Grid Complexity
 
-RASH-HIT Fractal Studio follows this workflow:
-
-```text
-SVG file
-→ SVG parser
-→ style and transform resolver
-→ fill/stroke geometry extraction
-→ curve and arc flattening
-→ viewBox-aware grid planning
-→ vector-grid cell intersection
-→ filled/empty box counts
-→ log-log regression
-→ Db, R², reports, tables, SVG maps, and manifest
-```
-
----
-
-## SVG Geometry Handling
-
-The system supports common SVG structures:
-- `path`
-- `polygon`
-- `polyline`
-- `line`
-- `rect`
-- `circle`
-- `ellipse`
-- group transforms
-- inline style attributes
-- class-based styles
-- `fill`
-- `stroke`
-- `stroke-width`
-- `viewBox`
-
-SVG path commands may include:
-`M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `A`, `Z`
-
-Curves and arcs are converted into sampled vector segments before geometric intersection analysis.
-
----
-
-## Fill and Stroke Interpretation
-
-In area mode, the system evaluates both filled regions and stroke geometry.
-
-A grid cell is counted as **filled** when at least one of the following is true:
-- a fill polygon intersects the cell
-- a fill polygon covers the cell
-- a fill polygon boundary touches the cell
-- a stroke line intersects the cell
-- a stroke line touches the cell
-- a stroke with width reaches the cell
-
-A grid cell is counted as **empty** when:
-- no fill geometry contacts the cell
-- no stroke geometry contacts the cell
-- no vector geometry crosses or touches the cell
-
-This means that design features such as closed motif surfaces, contour lines, internal paths, and stroke-based details can all contribute to the filled cell count.
-
----
-
-## Mathematical Method
-
-The box-counting fractal dimension (`Db`) estimates how the number of occupied boxes changes as the spatial scale becomes finer.
-
-For each grid level:
-- `N(epsilon)` = number of filled grid cells
-- `epsilon` = spatial scale associated with grid cell size
-- `Db` = slope of the log-log regression
-
-The regression model is:
-```text
-log(N(epsilon)) = Db * log(1 / epsilon) + C
-```
-
-The coefficient of determination is reported as R²:
-```text
-R² = 1 - SS_res / SS_tot
-```
+### Box-Counting Fractal Dimension ($D_b$)
+The engine places a multi-level grid over the SVG bounding box and tests vector intersection for each grid cell:
+$$\log N(\varepsilon) = D_b \cdot \log\left(\frac{1}{\varepsilon}\right) + C$$
 
 Where:
-- `SS_res = sum((y_i - y_hat_i)^2)`
-- `SS_tot = sum((y_i - mean(y))^2)`
+- $N(\varepsilon)$ = Number of occupied (filled/stroke-intersecting) grid cells
+- $\varepsilon = \max(W_{\text{cell}}, H_{\text{cell}}) / \max(W_{\text{analysis}}, H_{\text{analysis}})$ = Normalized scale factor
+- $D_b$ = Slope of the linear least-squares regression line
+- $R^2 = 1 - \frac{SS_{\text{res}}}{SS_{\text{tot}}}$ = Coefficient of determination
 
-R² is used as a regression fit indicator across selected grid levels.
+### Grid Level Scaling & CPU Workload
+There is **no hard limit** on the number of levels (`--levels N`). However, because grid resolution doubles at each step ($2^i$), total cell count scales quadratically (approximately **$4\times$ more cells per level**):
 
----
+| Level | Grid Dimensions | Total Cells | Relative CPU & Memory Scale |
+|:---|:---|:---|:---|
+| **L01** | $4 \times 8$ | 32 | $1\times$ (Base) |
+| **L02** | $8 \times 16$ | 128 | $\approx 4\times$ |
+| **L03** | $16 \times 32$ | 512 | $\approx 16\times$ |
+| **L04** | $32 \times 64$ | 2,048 | $\approx 64\times$ |
+| **L05** | $64 \times 128$ | 8,192 | $\approx 256\times$ |
+| **L06** | $128 \times 256$ | 32,768 | $\approx 1,024\times$ |
+| **L07** | $256 \times 512$ | 131,072 | $\approx 4,096\times$ (Default cutoff) |
+| **L08** | $512 \times 1024$ | 524,288 | $\approx 16,384\times$ |
+| **L09** | $1024 \times 2048$ | 2,097,152 | $\approx 65,536\times$ |
 
-## Grid Levels
-
-By default, the software analyzes seven grid levels:
-`L01–L07`
-
-Higher levels can be requested:
-```bash
-python run_analysis.py --input input_svgs/16D.svg --levels 10
-```
-
-Higher levels increase computational cost and output size. Each added level typically increases the number of cells by approximately four times.
-
----
-
-## System Requirements
-
-- Python 3.9 or newer
-- Windows, Linux, or macOS
-
-Recommended:
-- Python 3.11 or 3.12
-- 16 GB RAM or more for high-resolution analyses
-- 64-bit operating system
+> [!NOTE]
+> Increasing `--levels` provides finer spatial resolution, but computation time and memory usage grow with cell count. For levels $L08$ and above, cell-level XLSX table exports are omitted by default (`--export-high-level-tables` to force $L08$) to keep export packages lightweight and avoid Excel cell limits.
 
 ---
 
-## Installation
+## Installation & Setup
 
-Clone the repository:
+### Requirements
+- Python 3.9+ (Python 3.11 or 3.12 recommended)
+- 64-bit OS (Windows, Linux, macOS)
+
 ```bash
 git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.git
 cd RASH-HIT-Fractal-Studio
-```
-
-Install dependencies:
-```bash
 pip install -r requirements.txt
 ```
 
-PDF export uses PyMuPDF through the fitz interface. Review PyMuPDF licensing terms if packaging or redistributing binary distributions.
-
 ---
 
-## Quick Start
+## Quick Start & CLI Usage
 
-Run the default analysis on the sample SVG:
+### Basic Analysis (Default: 7 Levels)
 ```bash
 python run_analysis.py --input input_svgs/16D.svg
 ```
 
-Default behavior:
-- Engine: CPU Exact Vector Geometry Engine
-- Measurement: area
-- Grid levels: L01..L07
-- Output profile: lean
-- Output folder: outputs/
-
----
-
-## CLI Usage
-
-### Single File Analysis
-```bash
-python run_analysis.py --input input_svgs/16D.svg
-```
-
-### High-Resolution Analysis
+### High-Resolution Analysis (e.g. 10 Levels)
 ```bash
 python run_analysis.py --input input_svgs/16D.svg --levels 10
 ```
@@ -276,140 +86,65 @@ python run_analysis.py --input input_svgs/16D.svg --levels 10
 python run_analysis.py --dir input_svgs/ --levels 7
 ```
 
-### Custom Output Directory
-```bash
-python run_analysis.py --input input_svgs/16D.svg --output-dir outputs/
-```
-
-### Export Level 08 Full Tables
-```bash
-python run_analysis.py --input input_svgs/16D.svg --levels 8 --export-high-level-tables
-```
-
----
-
-## CLI Options
-
-- `--input`: Path to a single SVG input file.
-- `--dir`: Path to a directory containing SVG files for batch processing.
-- `--engine`: Engine selection. Default: cpu.
-- `--measure`: Measurement mode. Default: area.
-- `--levels`: Number of grid levels. Default: 7.
-- `--profile`: Output profile. Available profiles: lean, reproducible, debug, presentation.
-- `--output-dir`: Custom output directory. Default: outputs/.
-- `--export-high-level-tables`: Enables full cell-level XLSX table export for Level 08.
+### Options Reference
+| Argument | Description | Default |
+|:---|:---|:---|
+| `--input` | Path to single input SVG file | `None` |
+| `--dir` | Path to directory for batch SVG analysis | `None` |
+| `--levels` | Number of grid levels ($N \ge 1$) | `7` |
+| `--measure` | Measurement mode (`area`) | `area` |
+| `--engine` | Computation engine (`cpu`) | `cpu` |
+| `--profile` | Output profile (`lean`, `reproducible`, `debug`, `presentation`) | `lean` |
+| `--output-dir` | Target export directory | `outputs/` |
+| `--export-high-level-tables` | Force full XLSX cell table generation for Level 08 | `False` |
 
 ---
 
 ## Output Package Structure
 
-Each analyzed SVG file produces a self-contained output package:
+Each analyzed SVG file generates a structured, self-contained output directory:
 
 ```text
-outputs/
-└── [motif_name]/
-    ├── report/
-    │   ├── report.pdf
-    │   ├── report.html
-    │   └── report.md
-    ├── excel/
-    │   └── workbook.xlsx
-    ├── tables/
-    │   ├── 01_4x8_cells.xlsx
-    │   ├── 02_8x16_cells.xlsx
-    │   ├── ...
-    │   └── tables.html
-    ├── figures/
-    │   ├── 01_4x8_map.svg
-    │   ├── 02_8x16_map.svg
-    │   └── ...
-    ├── terminal/
-    │   └── terminal.txt
-    └── manifest/
-        └── manifest.json
+outputs/[motif_name]/
+├── report/
+│   ├── report.pdf      # Publication PDF report
+│   ├── report.html     # Interactive browser report
+│   └── report.md       # Markdown summary
+├── excel/
+│   └── workbook.xlsx   # Multi-sheet summary workbook
+├── tables/
+│   ├── 01_4x8_cells.xlsx
+│   └── tables.html     # Interactive cell data table viewer
+├── figures/
+│   └── 01_4x8_map.svg  # Pure vector SVG grid occupancy maps
+├── terminal/
+│   └── terminal.txt    # Execution log
+└── manifest/
+    └── manifest.json   # Reproducibility metadata with SHA-256 hash
 ```
 
 ---
 
-## Output Files
+## Dependencies & Third-Party Notices
 
-- `report.pdf`: A formatted PDF research report containing analysis metadata, grid summaries, regression results, and output notes.
-- `report.html`: An HTML report for browser-based review.
-- `report.md`: A Markdown report suitable for GitHub, documentation, or academic notes.
-- `workbook.xlsx`: A multi-sheet Excel workbook containing summary metrics and structured analysis tables.
-- `tables/*.xlsx`: Per-level cell tables for safe grid levels.
-- `figures/*.svg`: Pure vector SVG grid maps showing filled and empty cell patterns.
-- `terminal.txt`: Plain-text execution log.
-- `manifest.json`: Reproducibility manifest containing metadata such as software version, input file hash, engine, measurement mode, grid levels, grid labels, runtime environment, dependency versions, and output metadata.
+- **Shapely / GEOS**: C++ spatial predicate engine for exact vector intersection queries (BSD / LGPL).
+- **NumPy**: Vectorized 2D grid matrix indexing and numerical regression (BSD).
+- **defusedxml**: Secure XML parsing against XXE attacks (Python PSF).
+- **openpyxl**: Multi-sheet XLSX workbook generation (MIT).
+- **PyMuPDF**: PDF report rendering engine (AGPL v3.0 / Commercial).
+- **PyYAML, Pillow, tinycss2**: Configuration parsing, image validation, and inline CSS parsing.
 
----
-
-## High-Level Output Export Policy
-
-Microsoft Excel worksheet limits can make very high-level full cell tables impractical. Therefore, full cell-level XLSX export is limited to safe analysis levels by default.
-
-Policy:
-- **L01–L07**: Full cell-level XLSX tables are generated by default.
-- **L08**: Full cell-level XLSX export is optional with `--export-high-level-tables`.
-- **L09+**: Full cell-level XLSX tables are skipped. Summary metrics, reports, SVG maps, and manifest metadata remain available.
-
-This keeps output packages readable and portable while preserving high-level analysis summaries.
-
----
-
-## Reproducibility
-
-RASH-HIT Fractal Studio records reproducibility metadata in `manifest.json`.
-
-Typical metadata includes:
-- `software_version`
-- `engine`
-- `measurement_mode`
-- `levels`
-- `grid_labels`
-- `input_svg_sha256`
-- `python_version`
-- `platform`
-- `numpy_version`
-- `shapely_version`
-- `geos_version`
-- `runtime_timestamp`
-
-For reproducible results, use the same input SVG, software version, engine, measurement mode, grid levels, curve tolerance, stroke/fill interpretation, and dependency versions.
-
----
-
-## Dependency Notes
-
-RASH-HIT Fractal Studio relies on third-party open-source Python libraries.
-
-Core dependencies include:
-- NumPy
-- Shapely
-- GEOS
-- openpyxl
-- PyMuPDF
-- PyYAML
-- Pillow
-- tinycss2
-- defusedxml
-
-Shapely/GEOS is used for vector geometry predicates in the CPU Exact Vector Geometry Engine.
-
-PDF export uses PyMuPDF. Review PyMuPDF licensing terms for redistribution requirements if packaging or redistributing binary distributions.
-
-See `THIRD_PARTY_NOTICES.md` for dependency and license details.
+See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for full licensing details.
 
 ---
 
 ## Citation
 
-- **Concept DOI**: https://doi.org/10.5281/zenodo.21693694
-- **Version DOI**: https://doi.org/10.5281/zenodo.21694567
+If you use RASH-HIT Fractal Studio in your research, please cite:
 
-If you use RASH-HIT Fractal Studio in your research, please cite the software using one of the following formats:
+- **Concept DOI**: [10.5281/zenodo.21693694](https://doi.org/10.5281/zenodo.21693694)
+- **Version DOI (v1.0.4)**: [10.5281/zenodo.21694567](https://doi.org/10.5281/zenodo.21694567)
 
-### BibTeX
 ```bibtex
 @software{Narcicek_RASH_HIT_Fractal_Studio_2026,
   author    = {Nar{\c{c}}i{\c{c}}ek, Mehmet Ra{\s}it},
@@ -417,68 +152,19 @@ If you use RASH-HIT Fractal Studio in your research, please cite the software us
   year      = {2026},
   version   = {1.0.4},
   publisher = {GitHub},
-  doi       = {10.5281/zenodo.21693694},
-  url       = {https://doi.org/10.5281/zenodo.21693694},
+  doi       = {10.5281/zenodo.21694567},
+  url       = {https://doi.org/10.5281/zenodo.21694567},
   orcid     = {https://orcid.org/0009-0005-3423-255X},
   license   = {Apache-2.0}
 }
 ```
 
-### RIS
-```ris
-TY  - COMP
-AU  - Narçiçek, Mehmet Raşit
-TI  - RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine
-PY  - 2026
-ET  - 1.0.4
-PB  - GitHub
-DO  - 10.5281/zenodo.21693694
-UR  - https://doi.org/10.5281/zenodo.21693694
-ER  - 
-```
-
-### APA 7
-> Narçiçek, M. R. (2026). *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine* (Version 1.0.4) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.21693694
-
-### AMA
-> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.4. GitHub; 2026. doi: 10.5281/zenodo.21693694. Available from: https://doi.org/10.5281/zenodo.21693694
-
-### Chicago (Author-Date)
-> Narçiçek, Mehmet Raşit. 2026. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine." Version 1.0.4. GitHub. https://doi.org/10.5281/zenodo.21693694.
-
-### EndNote
-> Narçiçek MR (2026) RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine (Version 1.0.4) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.21693694
-
-### IEEE
-> [1] M. R. Narçiçek, "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine," Version 1.0.4, GitHub, 2026, doi: 10.5281/zenodo.21693694.
-
-### ISNAD
-> Narçiçek, Mehmet Raşit. "RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine". Version 1.0.4. GitHub, 2026. https://doi.org/10.5281/zenodo.21693694.
-
-### JAMA
-> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine. Version 1.0.4. GitHub; 2026. https://doi.org/10.5281/zenodo.21693694
-
-### MLA (9th Edition)
-> Narçiçek, Mehmet Raşit. *RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine*. Version 1.0.4, GitHub, 2026, https://doi.org/10.5281/zenodo.21693694.
-
-### Vancouver
-> 1. Narçiçek MR. RASH-HIT Fractal Studio: Vector Geometry Analysis and Box-Counting Engine [Computer software]. Version 1.0.4. GitHub; 2026. Available from: https://doi.org/10.5281/zenodo.21693694
-
 ---
 
-## License
+## License & Author
 
-RASH-HIT Fractal Studio is released under the Apache License, Version 2.0.
+Distributed under the **Apache License, Version 2.0**. See [`LICENSE`](LICENSE) for details.
 
-See `LICENSE` for license details.
-
-Copyright © 2026 Mehmet Raşit Narçiçek.
-
----
-
-## Author
-
-- **Name**: Mehmet Raşit Narçiçek
-- **ORCID**: https://orcid.org/0009-0005-3423-255X
-- **Concept DOI**: https://doi.org/10.5281/zenodo.21693694
-- **Version DOI**: https://doi.org/10.5281/zenodo.21694567
+- **Author**: Mehmet Raşit Narçiçek
+- **ORCID**: [0009-0005-3423-255X](https://orcid.org/0009-0005-3423-255X)
+- **Copyright**: © 2026 Mehmet Raşit Narçiçek

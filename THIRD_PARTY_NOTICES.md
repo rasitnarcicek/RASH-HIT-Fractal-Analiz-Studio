@@ -47,3 +47,8 @@ RASH-HIT Fractal Studio relies on third-party open-source computational software
 - **Usage**: Used for parsing SVG inline CSS style declarations.
 
 ---
+
+### defusedxml
+- **Project**: defusedxml
+- **License**: Python Software Foundation License (PSFL)
+- **Usage**: Used for XML security hardening against entity expansion (XXE) vulnerabilities.
