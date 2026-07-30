@@ -2,18 +2,11 @@
 # Copyright 2026 Mehmet Raşit Narçiçek
 
 import unittest
-import numpy as np
-from pathlib import Path
-import tempfile
 import subprocess
 import sys
 
 from backend.geometry_engine import parse_transform_string, transform_points, parse_svg_path
-from backend.academic_exporter import esc_html, esc_xml, sanitize_output_slug, LevelReportModel, AnalysisReportModel
-from backend.grid_planner import create_grid_plan
-from backend.intersection_cpu_area import analyze_grid_cpu_area
-from backend.intersection_hierarchical import analyze_grid_hierarchical
-from backend.svg_loader import SVGLoader
+from backend.academic_exporter import esc_html, esc_xml, sanitize_output_slug
 
 
 class TestReleaseBlockers(unittest.TestCase):
@@ -88,7 +81,6 @@ class TestReleaseBlockers(unittest.TestCase):
 
     # 8. Output Policy L08 / L09 Test
     def test_output_policy_l08_l09(self):
-        lvl7 = LevelReportModel(level=7, cols=128, rows=256, grid_label="128x256", total_cells=32768, filled_cells=100, empty_cells=32668, fill_ratio=0.003, occupancy_percent=0.3, cell_w=1, cell_h=1, execution_time_ms=1.0)
         is_l8_safe = (8 <= 7) or False
         self.assertFalse(is_l8_safe)
 

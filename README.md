@@ -365,14 +365,8 @@ RASH-HIT Fractal Studio integrates specialized verification modules to ensure da
 1. **Output Slug Sanitization (`sanitize_output_slug`)**:
    Input SVG filenames and motif names are sanitized using regex filtering (`[^A-Za-z0-9._-]+`) to prevent path traversal vulnerabilities (`../`) and generate safe, cross-platform filesystem directory names.
 
-2. **Boundary Cell & Degeneracy Detector (`backend/suspicious_detector.py`)**:
-   `verify_boundary_cells()` inspects grid boundary cell occupancy ratios across levels. It flags potential bounding-box clipping, zero-area vector degenerate paths, or misaligned ViewBox boundaries.
-
-3. **PDF Structural Validator (`backend/pdf_validator.py`)**:
-   `validate_pdf_file()` uses PyMuPDF to inspect compiled `report.pdf` files. It verifies page count integrity, font text stream extraction, vector drawing primitives, and checks for stream corruption.
-
-4. **Multi-Source Artifact Cross-Validator (`backend/artifact_validator.py`)**:
-   `validate_and_generate_real_diff_reports()` performs a 4-way cross-verification matrix between ASCII grid books (`*_ascii.txt`), Run-Length Encoded JSON files (`*_rle.json`), SVG coordinate maps (`*_map.svg`), and optional PNG renderings to guarantee $100\%$ cell occupancy consistency across all export formats.
+2. **Artifact Format Validator (`backend/artifact_validator.py`)**:
+   Parser functions (`parse_ascii_file`, `parse_mask_file`, `parse_rle_file`, `parse_svg_rects_xml`) validate all generated artifact output formats in the test suite, ensuring structural correctness and internal consistency across ASCII grids, RLE JSON, and SVG coordinate maps.
 
 
 ---
