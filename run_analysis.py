@@ -38,11 +38,15 @@ def process_single_file(input_file: str, engine: str, measure_mode: str, levels:
 
     # Load SVG
     t0_load = time.perf_counter()
-    loader = SVGLoader(input_file)
-    elements = loader.get_elements()
-    geoms: List[ParsedGeometry] = []
-    for node, style in elements:
-        geoms.extend(extract_node_geometries(node, style))
+    try:
+        loader = SVGLoader(input_file)
+        elements = loader.get_elements()
+        geoms: List[ParsedGeometry] = []
+        for node, style in elements:
+            geoms.extend(extract_node_geometries(node, style))
+    except Exception as e:
+        print(f"[ERROR] Failed to load or parse SVG file '{input_file}': {e}", file=sys.stderr)
+        sys.exit(1)
     t1_load = time.perf_counter()
     print(f"[+] Loaded {len(geoms)} geometries in {(t1_load - t0_load)*1000:.2f} ms")
 

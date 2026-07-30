@@ -59,7 +59,7 @@ def compute_fractal_dimension(
     used_indices: List[int] = []
 
     for r in target_results:
-        if r.filled_count > 0 and r.level.log_inv_epsilon > 0:
+        if r.filled_count > 0 and r.level.log_inv_epsilon >= 0:
             x_vals.append(r.level.log_inv_epsilon)
             y_vals.append(math.log(r.filled_count))
             used_indices.append(r.level.level_idx)

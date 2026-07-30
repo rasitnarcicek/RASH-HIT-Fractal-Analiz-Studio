@@ -273,10 +273,23 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
         is_rel = cmd.islower()
         c = cmd.upper()
 
+        def get_args(count: int) -> List[float]:
+            nonlocal idx
+            if idx + count > num_tokens:
+                raise ValueError(f"Malformed SVG path: command '{cmd}' expects {count} parameters, but only {num_tokens - idx} remain")
+            args = []
+            for k in range(count):
+                val = raw_list[idx + k]
+                if not isinstance(val, (int, float)):
+                    raise ValueError(f"Malformed SVG path: command '{cmd}' expects numeric parameter, got '{val}'")
+                args.append(float(val))
+            idx += count
+            return args
+
         if c == 'M':
-            x = raw_list[idx] + (curr_x if is_rel else 0.0)
-            y = raw_list[idx+1] + (curr_y if is_rel else 0.0)
-            idx += 2
+            a = get_args(2)
+            x = a[0] + (curr_x if is_rel else 0.0)
+            y = a[1] + (curr_y if is_rel else 0.0)
             curr_x, curr_y = x, y
             start_x, start_y = x, y
 
@@ -286,32 +299,32 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
             cmd = 'l' if is_rel else 'L'
 
         elif c == 'L':
-            x = raw_list[idx] + (curr_x if is_rel else 0.0)
-            y = raw_list[idx+1] + (curr_y if is_rel else 0.0)
-            idx += 2
+            a = get_args(2)
+            x = a[0] + (curr_x if is_rel else 0.0)
+            y = a[1] + (curr_y if is_rel else 0.0)
             curr_x, curr_y = x, y
             current_path.append((curr_x, curr_y))
 
         elif c == 'H':
-            x = raw_list[idx] + (curr_x if is_rel else 0.0)
-            idx += 1
+            a = get_args(1)
+            x = a[0] + (curr_x if is_rel else 0.0)
             curr_x = x
             current_path.append((curr_x, curr_y))
 
         elif c == 'V':
-            y = raw_list[idx] + (curr_y if is_rel else 0.0)
-            idx += 1
+            a = get_args(1)
+            y = a[0] + (curr_y if is_rel else 0.0)
             curr_y = y
             current_path.append((curr_x, curr_y))
 
         elif c == 'C':
-            x1 = raw_list[idx] + (curr_x if is_rel else 0.0)
-            y1 = raw_list[idx+1] + (curr_y if is_rel else 0.0)
-            x2 = raw_list[idx+2] + (curr_x if is_rel else 0.0)
-            y2 = raw_list[idx+3] + (curr_y if is_rel else 0.0)
-            x = raw_list[idx+4] + (curr_x if is_rel else 0.0)
-            y = raw_list[idx+5] + (curr_y if is_rel else 0.0)
-            idx += 6
+            a = get_args(6)
+            x1 = a[0] + (curr_x if is_rel else 0.0)
+            y1 = a[1] + (curr_y if is_rel else 0.0)
+            x2 = a[2] + (curr_x if is_rel else 0.0)
+            y2 = a[3] + (curr_y if is_rel else 0.0)
+            x = a[4] + (curr_x if is_rel else 0.0)
+            y = a[5] + (curr_y if is_rel else 0.0)
 
             pts = sample_cubic_bezier((curr_x, curr_y), (x1, y1), (x2, y2), (x, y), num_steps=tolerance_steps)
             current_path.extend(pts)
@@ -325,11 +338,11 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
             else:
                 x1, y1 = curr_x, curr_y
 
-            x2 = raw_list[idx] + (curr_x if is_rel else 0.0)
-            y2 = raw_list[idx+1] + (curr_y if is_rel else 0.0)
-            x = raw_list[idx+2] + (curr_x if is_rel else 0.0)
-            y = raw_list[idx+3] + (curr_y if is_rel else 0.0)
-            idx += 4
+            a = get_args(4)
+            x2 = a[0] + (curr_x if is_rel else 0.0)
+            y2 = a[1] + (curr_y if is_rel else 0.0)
+            x = a[2] + (curr_x if is_rel else 0.0)
+            y = a[3] + (curr_y if is_rel else 0.0)
 
             pts = sample_cubic_bezier((curr_x, curr_y), (x1, y1), (x2, y2), (x, y), num_steps=tolerance_steps)
             current_path.extend(pts)
@@ -337,11 +350,11 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
             curr_x, curr_y = x, y
 
         elif c == 'Q':
-            x1 = raw_list[idx] + (curr_x if is_rel else 0.0)
-            y1 = raw_list[idx+1] + (curr_y if is_rel else 0.0)
-            x = raw_list[idx+2] + (curr_x if is_rel else 0.0)
-            y = raw_list[idx+3] + (curr_y if is_rel else 0.0)
-            idx += 4
+            a = get_args(4)
+            x1 = a[0] + (curr_x if is_rel else 0.0)
+            y1 = a[1] + (curr_y if is_rel else 0.0)
+            x = a[2] + (curr_x if is_rel else 0.0)
+            y = a[3] + (curr_y if is_rel else 0.0)
 
             pts = sample_quadratic_bezier((curr_x, curr_y), (x1, y1), (x, y), num_steps=tolerance_steps)
             current_path.extend(pts)
@@ -355,9 +368,9 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
             else:
                 x1, y1 = curr_x, curr_y
 
-            x = raw_list[idx] + (curr_x if is_rel else 0.0)
-            y = raw_list[idx+1] + (curr_y if is_rel else 0.0)
-            idx += 2
+            a = get_args(2)
+            x = a[0] + (curr_x if is_rel else 0.0)
+            y = a[1] + (curr_y if is_rel else 0.0)
 
             pts = sample_quadratic_bezier((curr_x, curr_y), (x1, y1), (x, y), num_steps=tolerance_steps)
             current_path.extend(pts)
@@ -365,14 +378,12 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
             curr_x, curr_y = x, y
 
         elif c == 'A':
-            rx = raw_list[idx]
-            ry = raw_list[idx+1]
-            phi = raw_list[idx+2]
-            large_arc = bool(raw_list[idx+3])
-            sweep = bool(raw_list[idx+4])
-            x = raw_list[idx+5] + (curr_x if is_rel else 0.0)
-            y = raw_list[idx+6] + (curr_y if is_rel else 0.0)
-            idx += 7
+            a = get_args(7)
+            rx, ry, phi = a[0], a[1], a[2]
+            large_arc = bool(a[3])
+            sweep = bool(a[4])
+            x = a[5] + (curr_x if is_rel else 0.0)
+            y = a[6] + (curr_y if is_rel else 0.0)
 
             pts = sample_elliptical_arc((curr_x, curr_y), rx, ry, phi, large_arc, sweep, (x, y), num_steps=tolerance_steps)
             current_path.extend(pts)
@@ -512,22 +523,13 @@ def extract_node_geometries(
             if len(polygons) == 1:
                 fill_obj = polygons[0]
             else:
-                # Sort by area descending so outer shell is processed first
-                polygons.sort(key=lambda p: p.area, reverse=True)
-                fill_obj = polygons[0]
-                for p in polygons[1:]:
-                    if fill_rule == 'evenodd':
-                        if fill_obj.contains(p) or fill_obj.intersects(p):
-                            fill_obj = fill_obj.difference(p)
-                        else:
-                            fill_obj = fill_obj.union(p)
-                    else: # nonzero fill rule default
-                        if fill_obj.contains(p):
-                            fill_obj = fill_obj.difference(p)
-                        elif fill_obj.intersects(p):
-                            fill_obj = fill_obj.difference(p)
-                        else:
-                            fill_obj = fill_obj.union(p)
+                if fill_rule == 'evenodd':
+                    polygons.sort(key=lambda p: p.area, reverse=True)
+                    fill_obj = polygons[0]
+                    for p in polygons[1:]:
+                        fill_obj = fill_obj.symmetric_difference(p)
+                else: # nonzero fill rule default
+                    fill_obj = unary_union(polygons)
             if fill_obj and not fill_obj.is_empty:
                 geoms.append(ParsedGeometry('fill', fill_obj, tag=tag))
 

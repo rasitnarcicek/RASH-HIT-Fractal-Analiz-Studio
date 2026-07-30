@@ -90,16 +90,18 @@ def create_grid_plan(
             levels.append(GridLevel(idx, max(1, c), max(1, r), analysis_w, analysis_h))
     else:
         # Automatic Square-like Grid Planner
-        # Base short axis on base_cells (default 4)
+        # Determine base resolution once at Level 0 to guarantee strict 2x quadtree doubling
+        if ar >= 1.0:
+            base_rows = base_cells
+            base_cols = max(1, int(round(base_rows * ar)))
+        else:
+            base_cols = base_cells
+            base_rows = max(1, int(round(base_cols / ar)))
+
         for i in range(num_levels):
             multiplier = 2 ** i
-            if ar >= 1.0:
-                rows = base_cells * multiplier
-                cols = max(1, int(round(rows * ar)))
-            else:
-                cols = base_cells * multiplier
-                rows = max(1, int(round(cols / ar)))
-
+            cols = base_cols * multiplier
+            rows = base_rows * multiplier
             levels.append(GridLevel(i + 1, cols, rows, analysis_w, analysis_h))
 
     return GridPlan(bounds, levels)

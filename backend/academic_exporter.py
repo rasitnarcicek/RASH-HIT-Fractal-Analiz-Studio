@@ -465,7 +465,7 @@ def generate_master_table_files(
         }
         (out_dir_data / "summary.json").write_text(json.dumps(sum_json_data, indent=2), encoding="utf-8")
 
-    return csv_path, json_path, csv_path
+    return csv_path, json_path, xlsx_table_p
 
 def generate_interactive_table_viewer(model: AnalysisReportModel, out_dir_tables: Path) -> Path:
     """Generates a single interactive HTML table viewer: tables/tables.html"""
@@ -584,7 +584,7 @@ def generate_interactive_table_viewer(model: AnalysisReportModel, out_dir_tables
   <div class="container">
     <div class="header">
       <h1>RASH-HIT Fractal Studio v1.0 - Interactive Table Viewer</h1>
-      <p>Motif: ''' + model.motif + f''' &nbsp;|&nbsp; Db = {model.db:.4f} &nbsp;|&nbsp; Engine: ''' + model.analysis_engine + '''</p>
+      <p>Motif: ''' + esc_html(model.motif) + f''' &nbsp;|&nbsp; Db = {model.db:.4f} &nbsp;|&nbsp; Engine: ''' + esc_html(model.analysis_engine) + '''</p>
     </div>
 
     <div class="controls">
@@ -738,7 +738,7 @@ def generate_all_levels_ascii_book(model: AnalysisReportModel, out_dir_ascii: Pa
         "================================================================================",
         "          RASH-HIT Fractal Studio v1.0.0 - ALL-LEVELS ASCII MAP BOOK             ",
         "================================================================================",
-        f"Motif: {esc_html(model.motif)} | Date: {model.generated_at} | Db: {model.db:.4f} | R2: {model.r2:.4f}",
+        f"Motif: {model.motif} | Date: {model.generated_at} | Db: {model.db:.4f} | R2: {model.r2:.4f}",
         ""
     ]
     for lvl in model.levels:
@@ -1202,13 +1202,17 @@ def generate_excel_workbook(
     auto_fit_sheet(ws_val)
 
     excel_path = out_dir_excel / "workbook.xlsx"
+    excel_saved = False
     for attempt in range(5):
         try:
             wb.save(excel_path)
+            excel_saved = True
             break
         except PermissionError:
             time.sleep(0.5)
     wb.close()
+    if not excel_saved:
+        raise PermissionError(f"Could not save Excel workbook to {excel_path} after 5 attempts (file is locked or permission denied).")
     return excel_path
 
 def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Path) -> Path:
@@ -1579,9 +1583,9 @@ def generate_terminal_log(model: AnalysisReportModel, out_dir_term: Path) -> Pat
         "+------------------------------------------------------------------------------+",
         "|               RASH-HIT Fractal Studio v1.0.0 - EXPORT TERMINAL LOG             |",
         "+------------------------------------------------------------------------------+",
-        f"  Motif Loaded       : {esc_html(model.motif)} ({model.viewbox_width:.2f} x {model.viewbox_height:.2f})",
+        f"  Motif Loaded       : {model.motif} ({model.viewbox_width:.2f} x {model.viewbox_height:.2f})",
         f"  Geometries         : {model.vector_geometry_count:,} vector elements",
-        f"  Analysis Engine    : {esc_html(model.analysis_engine)}",
+        f"  Analysis Engine    : {model.analysis_engine}",
         f"  Hardware Accel     : Not Used (CPU Exact Engine)",
         "+------------------------------------------------------------------------------+",
         "| Level | Grid     | Total Cells | Filled Cells | Empty Cells | Occupancy % | Time ms  |",

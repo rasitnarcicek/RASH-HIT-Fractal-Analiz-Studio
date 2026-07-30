@@ -32,7 +32,16 @@ def parse_mask_file(mask_path: Path, cols: int, rows: int) -> np.ndarray:
     matrix = np.zeros((rows, cols), dtype=int)
     row_idx = 0
     for line in lines:
-        if "=" in line and line.startswith("Y"):
+        if "|" in line:
+            parts = line.split("|")
+            if len(parts) >= 2:
+                bits = parts[1].replace(" ", "").strip()
+                if len(bits) == cols and row_idx < rows:
+                    for c_idx, b in enumerate(bits):
+                        if b in ("1", "■", "#", "X"):
+                            matrix[row_idx, c_idx] = 1
+                    row_idx += 1
+        elif "=" in line and line.startswith("Y"):
             bits = line.split("=", 1)[1].strip()
             if len(bits) == cols and row_idx < rows:
                 for c_idx, b in enumerate(bits):
@@ -45,6 +54,13 @@ def parse_mask_file(mask_path: Path, cols: int, rows: int) -> np.ndarray:
 def parse_rle_file(rle_path: Path, cols: int, rows: int) -> np.ndarray:
     data = json.loads(rle_path.read_text(encoding="utf-8"))
     matrix = np.zeros((rows, cols), dtype=int)
+    if "rle_runs" in data:
+        runs = data["rle_runs"]
+        flat = []
+        for val, count in runs:
+            flat.extend([int(val)] * int(count))
+        if len(flat) == cols * rows:
+            return np.array(flat, dtype=int).reshape((rows, cols))
     for row_info in data.get("rows", []):
         y = row_info.get("y", 0)
         if y < rows:
@@ -80,7 +96,7 @@ def parse_svg_rects_xml(svg_path: Path, cols: int, rows: int) -> Tuple[np.ndarra
         except ValueError:
             continue
 
-        if fill in ("#111827", "#000000", "black"):
+        if fill in ("#111827", "#000000", "black", "#60a5fa", "#3b82f6", "#2563eb", "#1d4ed8"):
             filled_rect_count += 1
             rect_data.append((rx, ry, rw, rh))
         elif fill in ("#f3f4f6", "#ffffff", "white"):
