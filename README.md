@@ -4,7 +4,6 @@
 - **Python**: 3.9+
 - **ORCID**: https://orcid.org/0009-0005-3423-255X
 - **DOI**: https://doi.org/10.5281/zenodo.21693694
-- **Concept DOI**: https://doi.org/10.5281/zenodo.21693695
 
 **RASH-HIT Fractal Studio** is a research-oriented computational software project for SVG-based vector geometry analysis, grid occupancy mapping, box-counting fractal dimension estimation, SVG Coordinate Map generation, and publication-ready research output generation.
 
