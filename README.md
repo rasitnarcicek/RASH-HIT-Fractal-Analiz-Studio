@@ -356,6 +356,29 @@ python run_analysis.py --dir input_svgs/ --levels 7
 
 ---
 
+---
+
+## Automated Validation & Quality Assurance Pipeline
+
+RASH-HIT Fractal Studio integrates specialized verification modules to ensure data integrity, PDF stream validity, and cross-format dataset consistency:
+
+1. **Output Slug Sanitization (`sanitize_output_slug`)**:
+   Input SVG filenames and motif names are sanitized using regex filtering (`[^A-Za-z0-9._-]+`) to prevent path traversal vulnerabilities (`../`) and generate safe, cross-platform filesystem directory names.
+
+2. **Boundary Cell & Degeneracy Detector (`backend/suspicious_detector.py`)**:
+   `verify_boundary_cells()` inspects grid boundary cell occupancy ratios across levels. It flags potential bounding-box clipping, zero-area vector degenerate paths, or misaligned ViewBox boundaries.
+
+3. **PDF Structural Validator (`backend/pdf_validator.py`)**:
+   `validate_pdf_file()` uses PyMuPDF to inspect compiled `report.pdf` files. It verifies page count integrity, font text stream extraction, vector drawing primitives, and checks for stream corruption.
+
+4. **Multi-Source Artifact Cross-Validator (`backend/artifact_validator.py`)**:
+   `validate_and_generate_real_diff_reports()` performs a 4-way cross-verification matrix between ASCII grid books (`*_ascii.txt`), Run-Length Encoded JSON files (`*_rle.json`), SVG coordinate maps (`*_map.svg`), and optional PNG renderings to guarantee $100\%$ cell occupancy consistency across all export formats.
+
+5. **Excel Auto-Fit Layout (`auto_fit_sheet`)**:
+   Multi-sheet Excel workbooks (`workbook.xlsx`) dynamically measure max string lengths per column and apply adaptive font padding for publication-ready presentation.
+
+---
+
 ## Reproducibility & Validation Controls
 
 RASH-HIT Fractal Studio incorporates automated validation tools to ensure dataset integrity:
