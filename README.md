@@ -6,7 +6,7 @@
 [![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.21694567-blue.svg)](https://doi.org/10.5281/zenodo.21694567)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
 
-**RASH-HIT Fractal Studio** is a research-grade, raster-free computational software system for SVG vector geometry analysis, aspect-ratio-aware grid occupancy mapping, box-counting fractal dimension ($D_b$) estimation, SVG Coordinate Map rendering, and publication-ready academic package generation.
+**RASH-HIT Fractal Studio** is a research-grade, raster-free computational software engine for SVG vector geometry analysis, aspect-ratio-aware grid occupancy mapping, box-counting fractal dimension ($D_b$) estimation, SVG Coordinate Map rendering, and academic research package generation.
 
 Unlike conventional image-processing tools that convert vector artwork into PNG/JPEG pixel rasters—introducing resolution dependency, anti-aliasing distortion, edge blurring, and scaling artifacts—RASH-HIT Fractal Studio evaluates raw SVG vector geometry directly in continuous floating-point coordinate space using C++ GEOS spatial predicates via Shapely 2.0.
 
@@ -15,17 +15,27 @@ Unlike conventional image-processing tools that convert vector artwork into PNG/
 ## Table of Contents
 
 1. [Research Context & Motivation](#research-context--motivation)
-2. [Key Architecture & Features](#key-architecture--features)
-3. [Mathematical Methodology](#mathematical-methodology)
+2. [Key Architecture & System Modules](#key-architecture--system-modules)
+3. [Mathematical Methodology & Regression](#mathematical-methodology--regression)
 4. [Computational Geometry Pipeline](#computational-geometry-pipeline)
+   - [SVG Element & Styling Resolution](#svg-element--styling-resolution)
+   - [CSS Unit Conversions](#css-unit-conversions)
+   - [2D Affine Transformation Matrix Stack](#2d-affine-transformation-matrix-stack)
+   - [Curve & Arc Vector Flattening](#curve--arc-vector-flattening)
+   - [Fill Rule Topology Resolution](#fill-rule-topology-resolution)
 5. [Aspect-Ratio-Aware Grid Planning](#aspect-ratio-aware-grid-planning)
 6. [Performance Optimization & Complexity Analysis](#performance-optimization--complexity-analysis)
-7. [Installation & Dependencies](#installation--dependencies)
-8. [CLI Usage & Command Matrix](#cli-usage--command-matrix)
-9. [Academic Output Package Specifications](#academic-output-package-specifications)
-10. [Reproducibility & Audit Controls](#reproducibility--audit-controls)
-11. [Academic Citation](#academic-citation)
-12. [License & Authorship](#license--authorship)
+   - [Unlimited Level Depth & Workload Scaling](#unlimited-level-depth--workload-scaling)
+   - [Complementary Empty Cell Accounting](#complementary-empty-cell-accounting)
+   - [RLE Compression & Spatial Indexing](#rle-compression--spatial-indexing)
+   - [High-Level XLSX Export Policy](#high-level-xlsx-export-policy)
+7. [Output Profiles & Execution Modes](#output-profiles--execution-modes)
+8. [Academic Output Package Specifications](#academic-output-package-specifications)
+9. [Installation & Dependencies](#installation--dependencies)
+10. [CLI Usage & Command Matrix](#cli-usage--command-matrix)
+11. [Reproducibility & Validation Controls](#reproducibility--validation-controls)
+12. [Academic Citation](#academic-citation)
+13. [License & Authorship](#license--authorship)
 
 ---
 
@@ -42,89 +52,136 @@ Rasterization distorts mathematical fractal measurements in several ways:
 
 ---
 
-## Key Architecture & Features
+## Key Architecture & System Modules
+
+The codebase is organized into decoupled, specialized backend modules:
 
 ```text
 SVG File Input
    │
-   ├──▶ 1. SVGLoader & Secure XML Parser (defusedxml)
-   │      └── Extract ViewBox, Dimensions, Styling & Node Hierarchy
+   ├──▶ 1. SVGLoader & Secure XML Parser (backend/svg_loader.py)
+   │      ├── defusedxml XXE Security Hardening
+   │      ├── ViewBox & Scale Resolution (viewBox ➔ width/height ➔ geometry bounds ➔ 100x100 fallback)
+   │      ├── CSS Rule Parser (tinycss2 + regex fallback) & Inline Style Resolver
+   │      ├── CSS Length Unit Normalization (px, pt, mm, cm, in, pc, em, rem, %)
+   │      └── Effective Opacity & Visibility Filtering (opacity, fill-opacity, stroke-opacity, display, visibility)
    │
-   ├──▶ 2. Geometry Engine (geometry_engine.py)
-   │      ├── 2D Affine Transform Matrix Stack (3x3 Homogeneous M)
-   │      ├── Curve Flattening (Cubic/Quadratic Bézier & Arc Parameterization)
-   │      └── Fill Rule Topology Resolution (nonzero: unary_union / evenodd: symmetric_difference)
+   ├──▶ 2. Geometry Engine (backend/geometry_engine.py)
+   │      ├── 3x3 Homogeneous Affine Transformation Stack (translate, rotate, scale, skewX, skewY, matrix)
+   │      ├── Curve & Arc Flattening (Cubic/Quadratic Bézier & Elliptical Arc parameterization)
+   │      ├── Transformed Stroke Width Scaling: w_effective = w_stroke * sqrt(|det(M)|)
+   │      └── Polygon Fill Rule Topology Resolution (nonzero: unary_union / evenodd: symmetric_difference)
    │
-   ├──▶ 3. Aspect-Ratio-Aware Grid Planner (grid_planner.py)
-   │      └── Automatic base grid determination & strict 2^i power-of-two resolution doubling
+   ├──▶ 3. Aspect-Ratio-Aware Grid Planner (backend/grid_planner.py)
+   │      └── Base grid resolution setup & strict 2^i power-of-two resolution doubling across levels
    │
-   ├──▶ 4. CPU Exact Vector Geometry Engine (intersection_cpu.py)
-   │      └── C++ STRtree vectorized bulk query against grid bounding boxes
+   ├──▶ 4. Spatial Candidate Prefilter (backend/candidate_prefilter.py)
+   │      └── Bounding-box candidate pruning & Cohen-Sutherland line clipping algorithms
    │
-   ├──▶ 5. Mathematical Fractal Analyzer (fractal_analyzer.py)
-   │      └── OLS Log-Log Regression for Db slope, R² fit & level statistics
+   ├──▶ 5. CPU Exact Vector Geometry Engine (backend/intersection_cpu.py)
+   │      ├── C++ STRtree vectorized bulk query against grid bounding boxes
+   │      ├── CellDebugInfo tracking (level, col, row, reason, geom_id, stroke_width, bounds)
+   │      └── Complementary empty cell calculation (N_empty = N_total - N_filled)
    │
-   └──▶ 6. Multi-Format Academic Exporter (academic_exporter.py)
-          └── Publication PDF, Interactive HTML, Markdown, XLSX Workbooks, Vector SVG Maps & Manifest
+   ├──▶ 6. Mathematical Fractal Analyzer (backend/fractal_analyzer.py)
+   │      └── OLS Log-Log Regression for Db slope, R² fit & zero-variance NaN safeguards
+   │
+   ├──▶ 7. Output Profiles & Suspicious Detector (backend/output_profiles.py, suspicious_detector.py)
+   │      └── Profile management (lean, reproducible, debug, presentation) & degenerate geometry detection
+   │
+   └──▶ 8. Multi-Format Academic Exporter (backend/academic_exporter.py)
+          ├── Pure Vector SVG Grid Maps (figures/*.svg)
+          ├── Interactive HTML Table Viewer (tables/tables.html) & PDF Report Compilation (report/report.pdf)
+          ├── Multi-Sheet Excel Workbooks (excel/workbook.xlsx) & per-level cell CSV/XLSX exports
+          ├── Run-Length Encoded (RLE) JSON & ASCII Map Books (tables/*.txt)
+          └── Reproducibility Manifest with SHA-256 Checksum (manifest/manifest.json)
 ```
 
 ---
 
-## Mathematical Methodology
+## Mathematical Methodology & Regression
 
 ### Box-Counting Fractal Dimension ($D_b$)
-The software places a series of spatial grids over the SVG analysis bounding box and evaluates occupancy for each grid cell. The relationship between grid scale $arepsilon$ and occupied box count $N(arepsilon)$ follows a power law:
+The software places a series of spatial grids over the SVG analysis bounding box and evaluates occupancy for each grid cell. The relationship between grid scale $\varepsilon$ and occupied box count $N(\varepsilon)$ follows a power law:
 
-$$N(arepsilon) \propto \left(rac{1}{arepsilon}ight)^{D_b}$$
+$$N(\varepsilon) \propto \left(\frac{1}{\varepsilon}\right)^{D_b}$$
 
 Taking the natural logarithm yields the linear regression model:
 
-$$\log N(arepsilon) = D_b \cdot \log\left(rac{1}{arepsilon}ight) + C$$
+$$\log N(\varepsilon) = D_b \cdot \log\left(\frac{1}{\varepsilon}\right) + C$$
 
 Where:
-- $N(arepsilon)$ = Number of filled (occupied) grid cells at scale $arepsilon$.
-- $arepsilon = rac{\max(W_{	ext{cell}}, H_{	ext{cell}})}{\max(W_{	ext{analysis}}, H_{	ext{analysis}})}$ = Normalized grid scale parameter.
-- $\log(1/arepsilon) = \ln(1 / arepsilon)$ = Logarithm of inverse scale factor.
-- $D_b = rac{\sum (x_i - ar{x})(y_i - ar{y})}{\sum (x_i - ar{x})^2}$ = Box-counting fractal dimension (OLS regression slope).
+- $N(\varepsilon)$ = Number of filled (occupied) grid cells at scale $\varepsilon$.
+- $\varepsilon = \frac{\max(W_{\text{cell}}, H_{\text{cell}})}{\max(W_{\text{analysis}}, H_{\text{analysis}})}$ = Normalized grid scale parameter.
+- $\log(1/\varepsilon) = \ln(1 / \varepsilon)$ = Logarithm of inverse scale factor.
+- $D_b = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sum (x_i - ar{x})^2}$ = Box-counting fractal dimension (Ordinary Least Squares regression slope).
 - $C$ = Regression intercept constant.
 
 ### Fit Quality ($R^2$ Score)
 The coefficient of determination $R^2$ measures regression fit quality across analyzed levels:
 
-$$R^2 = 1 - rac{SS_{	ext{res}}}{SS_{	ext{tot}}} = 1 - rac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - ar{y})^2}$$
+$$R^2 = 1 - \frac{SS_{\text{res}}}{SS_{\text{tot}}} = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$$
 
-If all occupied cell counts across levels are identical ($	ext{Var}(y) = 0$), $R^2$ evaluates to `NaN` to signal a degenerate regression state rather than overstating quality.
+If all occupied cell counts across levels are identical (zero variance $\text{Var}(y) = 0$), $R^2$ evaluates to `NaN` to signal a degenerate regression state rather than overstating quality.
 
 ### Occupancy Percentage
-For each grid level with $C$ columns and $R$ rows ($N_{	ext{total}} = C 	imes R$):
+For each grid level with $C$ columns and $R$ rows ($N_{\text{total}} = C \times R$):
 
-$$	ext{Fill Ratio} = rac{N_{	ext{filled}}}{N_{	ext{total}}}, \quad 	ext{Occupancy \%} = 	ext{Fill Ratio} 	imes 100\%$$
+$$\text{Fill Ratio} = \frac{N_{\text{filled}}}{N_{\text{total}}}, \quad \text{Occupancy \%} = \text{Fill Ratio} \times 100\%$$
 
 ---
 
 ## Computational Geometry Pipeline
 
-### 1. Affine Transformation Matrix Stack
+### SVG Element & Styling Resolution
+The SVG Loader (`svg_loader.py`) parses elements (`path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`) and resolves inherited styles across presentation attributes, inline `style="..."` attributes, and `<style>` CSS class definitions (`.classname`).
+
+**Visibility & Opacity Filtering**:
+An element is excluded from geometry analysis if:
+- `display` evaluates to `none`
+- `visibility` evaluates to `hidden` or `collapse`
+- `opacity` evaluates to `0.0`
+- `effective_fill_alpha` ($=\text{fill\_opacity} \times \text{opacity}$) and `effective_stroke_alpha` ($=\text{stroke\_opacity} \times \text{opacity}$) both evaluate to `0.0`
+
+### CSS Unit Conversions
+Length parameters are converted to absolute floating-point pixels ($px$) using physical unit scale factors:
+
+| Unit | Definition | Scale Factor to Pixels ($px$) |
+|:---|:---|:---|
+| `px` | Pixels | $1.0$ |
+| `pt` | Points | $1.33333$ ($4/3$) |
+| `pc` | Picas | $16.0$ |
+| `mm` | Millimeters | $3.77953$ |
+| `cm` | Centimeters | $37.7953$ |
+| `in` | Inches | $96.0$ |
+| `em`, `rem` | Font relative units | $16.0$ (Default font base) |
+| `%` | ViewBox percentage | Relative to ViewBox dimension |
+
+### 2D Affine Transformation Matrix Stack
 SVG elements inherit coordinate transformations from parent `<g>` groups and element `transform="..."` attributes. The engine builds a 3x3 homogeneous transformation matrix $M$ for each element:
 
-$$M_{	ext{cumulative}} = \prod_{k=1}^{m} T_k$$
+$$M_{\text{cumulative}} = \prod_{k=1}^{m} T_k$$
 
 Supported transformation functions:
-- `matrix(a, b, c, d, e, f)` $ightarrow egin{bmatrix} a & c & e \ b & d & f \ 0 & 0 & 1 \end{bmatrix}$
-- `translate(tx, ty)` $ightarrow egin{bmatrix} 1 & 0 & t_x \ 0 & 1 & t_y \ 0 & 0 & 1 \end{bmatrix}$
-- `scale(sx, sy)` $ightarrow egin{bmatrix} s_x & 0 & 0 \ 0 & s_y & 0 \ 0 & 0 & 1 \end{bmatrix}$
-- `rotate(angle, cx, cy)` $ightarrow T(c_x, c_y) \cdot R(	heta) \cdot T(-c_x, -c_y)$
-- `skewX(angle)` $ightarrow egin{bmatrix} 1 & 	anlpha & 0 \ 0 & 1 & 0 \ 0 & 0 & 1 \end{bmatrix}$
-- `skewY(angle)` $ightarrow egin{bmatrix} 1 & 0 & 0 \ 	anlpha & 1 & 0 \ 0 & 0 & 1 \end{bmatrix}$
+- `matrix(a, b, c, d, e, f)` $\rightarrow \begin{bmatrix} a & c & e \\ b & d & f \\ 0 & 0 & 1 \end{bmatrix}$
+- `translate(tx, ty)` $\rightarrow \begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{bmatrix}$
+- `scale(sx, sy)` $\rightarrow \begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmatrix}$
+- `rotate(angle, cx, cy)` $\rightarrow T(c_x, c_y) \cdot R(\theta) \cdot T(-c_x, -c_y)$
+- `skewX(angle)` $\rightarrow \begin{bmatrix} 1 & \tan\alpha & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}$
+- `skewY(angle)` $\rightarrow \begin{bmatrix} 1 & 0 & 0 \\ \tan\alpha & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}$
 
-### 2. Curve & Arc Vector Flattening
-SVG paths contain parametric curves that are adaptively sampled into linear segments:
+**Stroke Width Transformation Scaling**:
+Stroke widths are scaled by the local transformation scale factor:
+$$w_{\text{effective}} = w_{\text{stroke}} \cdot \sqrt{|\det(M_{2\times 2})|} = w_{\text{stroke}} \cdot \sqrt{|a \cdot d - b \cdot c|}$$
+
+### Curve & Arc Vector Flattening
+SVG paths contain parametric curves that are adaptively sampled into linear segments based on tolerance configuration (`high`: 24 steps, `medium`: 12 steps, `low`: 6 steps):
 
 - **Cubic Bézier ($C, S$)**: $B(t) = (1-t)^3 P_0 + 3(1-t)^2 t P_1 + 3(1-t) t^2 P_2 + t^3 P_3, \quad t \in [0, 1]$
 - **Quadratic Bézier ($Q, T$)**: $B(t) = (1-t)^2 P_0 + 2(1-t) t P_1 + t^2 P_2, \quad t \in [0, 1]$
-- **Elliptical Arcs ($A$)**: Converted from SVG endpoint parameterization $(x_1, y_1, r_x, r_y, \phi, f_A, f_S, x_2, y_2)$ to center parameterization $(c_x, c_y, 	heta_1, \Delta	heta)$ before trigonometric evaluation.
+- **Elliptical Arcs ($A$)**: Converted from SVG endpoint parameterization $(x_1, y_1, r_x, r_y, \phi, f_A, f_S, x_2, y_2)$ to center parameterization $(c_x, c_y, \theta_1, \Delta\theta)$ before trigonometric evaluation.
 
-### 3. Fill Rule Topology Resolution
+### Fill Rule Topology Resolution
 Subpath polylines are converted into Shapely `Polygon` objects:
 - **`nonzero` Fill Rule**: Uses `shapely.ops.unary_union(polygons)` to merge overlapping vector subpaths into a unified topology.
 - **`evenodd` Fill Rule**: Evaluates sequential subpaths using `symmetric_difference` to create holes for inner nested rings.
@@ -139,12 +196,13 @@ SVG artwork rarely forms a perfect 1:1 square bounding box. Forcing non-square g
 1. Valid SVG `viewBox` $[x_0, y_0, W, H]$
 2. Valid SVG `width` and `height` attributes
 3. Accumulated vector geometry bounds $[x_{\min}, y_{\min}, x_{\max}, y_{\max}]$
+4. Emergency fallback box $[0, 0, 100, 100]$
 
-Given analysis dimensions $W_{	ext{analysis}}$ and $H_{	ext{analysis}}$, aspect ratio is $AR = rac{W_{	ext{analysis}}}{H_{	ext{analysis}}}$.
+Given analysis dimensions $W_{\text{analysis}}$ and $H_{	ext{analysis}}$, aspect ratio is $AR = \frac{W_{\text{analysis}}}{H_{\text{analysis}}}$.
 
-At Level 01, base grid dimensions $(C_1, R_1)$ are calculated to make cells as square as possible ($W_{	ext{cell}} pprox H_{	ext{cell}}$):
-$$	ext{If } AR \ge 1.0: \quad R_1 = N_{	ext{base}}, \quad C_1 = \max(1, 	ext{round}(R_1 \cdot AR))$$
-$$	ext{If } AR < 1.0: \quad C_1 = N_{	ext{base}}, \quad R_1 = \max(1, 	ext{round}(C_1 / AR))$$
+At Level 01, base grid dimensions $(C_1, R_1)$ are calculated to make cells as square as possible ($W_{\text{cell}} \approx H_{	ext{cell}}$):
+$$\text{If } AR \ge 1.0: \quad R_1 = N_{\text{base}}, \quad C_1 = \max(1, \text{round}(R_1 \cdot AR))$$
+$$\text{If } AR < 1.0: \quad C_1 = N_{\text{base}}, \quad R_1 = \max(1, \text{round}(C_1 / AR))$$
 
 For all subsequent levels $i \ge 1$, resolution doubles strictly:
 $$C_i = C_1 \cdot 2^{i-1}, \quad R_i = R_1 \cdot 2^{i-1}$$
@@ -155,31 +213,41 @@ This **strict $2^i$ doubling** guarantees quadtree parent-child cell alignment a
 
 ## Performance Optimization & Complexity Analysis
 
-### Unlimited Level Depth & Scaling Workload
-There is **no hard limit** on the number of requested grid levels (`--levels N`, $N \ge 1$). However, because resolution doubles along both axes at every level, total grid cell count scales quadratically (approximately **$4	imes$ cell expansion per level**):
+### Unlimited Level Depth & Workload Scaling
+There is **no hard limit** on the number of requested grid levels (`--levels N`, $N \ge 1$). However, because resolution doubles along both axes at every level, total grid cell count scales quadratically (approximately **$4\times$ cell expansion per level**):
 
-| Level | Grid Resolution | Total Cells ($N_{	ext{total}}$) | Memory & STRtree Workload Scale |
+| Level | Grid Resolution | Total Cells ($N_{\text{total}}$) | Memory & STRtree Workload Scale |
 |:---|:---|:---|:---|
-| **L01** | $4 	imes 8$ | 32 | $1	imes$ (Base) |
-| **L02** | $8 	imes 16$ | 128 | $pprox 4	imes$ |
-| **L03** | $16 	imes 32$ | 512 | $pprox 16	imes$ |
-| **L04** | $32 	imes 64$ | 2,048 | $pprox 64	imes$ |
-| **L05** | $64 	imes 128$ | 8,192 | $pprox 256	imes$ |
-| **L06** | $128 	imes 256$ | 32,768 | $pprox 1,024	imes$ |
-| **L07** | $256 	imes 512$ | 131,072 | $pprox 4,096	imes$ (Default CLI Depth) |
-| **L08** | $512 	imes 1024$ | 524,288 | $pprox 16,384	imes$ |
-| **L09** | $1024 	imes 2048$ | 2,097,152 | $pprox 65,536	imes$ |
-| **L10** | $2048 	imes 4096$ | 8,388,608 | $pprox 262,144	imes$ |
+| **L01** | $4 \times 8$ | 32 | $1\times$ (Base) |
+| **L02** | $8 \times 16$ | 128 | $\approx 4\times$ |
+| **L03** | $16 \times 32$ | 512 | $\approx 16\times$ |
+| **L04** | $32 \times 64$ | 2,048 | $\approx 64\times$ |
+| **L05** | $64 \times 128$ | 8,192 | $\approx 256\times$ |
+| **L06** | $128 \times 256$ | 32,768 | $\approx 1,024\times$ |
+| **L07** | $256 \times 512$ | 131,072 | $\approx 4,096\times$ (Default CLI Depth) |
+| **L08** | $512 \times 1024$ | 524,288 | $\approx 16,384\times$ |
+| **L09** | $1024 \times 2048$ | 2,097,152 | $\approx 65,536\times$ |
+| **L10** | $2048 \times 4096$ | 8,388,608 | $\approx 262,144\times$ |
 
 ### Complementary Empty Cell Accounting
-For a grid with $N_{	ext{total}}$ cells, testing every cell individually against geometry would require $O(N_{	ext{total}})$ evaluations.
+For a grid with $N_{\text{total}}$ cells, testing every cell individually against geometry would require $O(N_{	ext{total}})$ evaluations.
 `intersection_cpu.py` uses vectorized NumPy grid bounding boxes queried against a C++ GEOS `STRtree` spatial index:
 1. `cell_boxes` are queried in bulk: `tree.query(cell_boxes, predicate='intersects')`.
 2. Occupied cell indices are collected: `matched_indices = np.unique(matches[0])`.
-3. Filled cell count is $N_{	ext{filled}} = |	ext{matched\_indices}|$.
-4. Empty cell count is calculated by complementary subtraction: $N_{	ext{empty}} = N_{	ext{total}} - N_{	ext{filled}}$.
+3. Filled cell count is $N_{\text{filled}} = |\text{matched\_indices}|$.
+4. Empty cell count is calculated by complementary subtraction: $N_{\text{empty}} = N_{	ext{total}} - N_{	ext{filled}}$.
 
 This avoids allocating or storing empty cell geometry objects, keeping performance fast even for grids with millions of cells.
+
+### RLE Compression & Spatial Indexing
+Per-level cell occupancy datasets are stored using Run-Length Encoding (RLE) JSON structures (`tables/*_rle.json`):
+```json
+{
+  "level": 1, "cols": 4, "rows": 8, "total_cells": 32, "filled_cells": 32,
+  "rle_runs": [[1, 32]]
+}
+```
+This compresses sparse or solid grid maps by orders of magnitude compared to uncompressed 2D boolean arrays.
 
 ### High-Level XLSX Export Policy
 Microsoft Excel worksheets support up to 1,048,576 rows. Full per-cell XLSX exports for levels $L08$ ($524,288$ cells) and $L09$ ($2,097,152$ cells) can lead to massive file sizes or exceed worksheet bounds.
@@ -188,6 +256,47 @@ Microsoft Excel worksheets support up to 1,048,576 rows. Full per-cell XLSX expo
 - **L01--L07**: Full per-cell XLSX tables are generated by default.
 - **L08**: Per-cell XLSX tables are omitted by default; enabled via `--export-high-level-tables`.
 - **L09+**: Per-cell XLSX tables are skipped. Summary metrics, PDF/HTML reports, SVG maps, and manifest metadata remain fully generated.
+
+---
+
+## Output Profiles & Execution Modes
+
+The engine supports four export profiles managed by `output_profiles.py`:
+
+| Profile | Target Audience | Generated Artifacts |
+|:---|:---|:---|
+| `lean` *(Default)* | Large batch processing & fast runs | PDF report, HTML report, Markdown summary, master Excel workbook, SVG maps, terminal log. |
+| `reproducible` | Academic publication submission | Full audit trail, `manifest.json` with SHA-256 hash, per-level CSV/XLSX datasets, RLE JSON files. |
+| `debug` | Geometry engine verification | Includes `CellDebugInfo` collection, cell bounding box dumps, raw CSV files, and detailed execution timings. |
+| `presentation` | Visual design showcase | High-resolution pure vector SVG grid maps and formatted PDF publication reports. |
+
+---
+
+## Academic Output Package Specifications
+
+Each analyzed SVG file produces an isolated research output package:
+
+```text
+outputs/[motif_name]/
+├── report/
+│   ├── report.pdf      # Publication PDF research report compiled via PyMuPDF
+│   ├── report.html     # Interactive HTML report with image-free first screen
+│   └── report.md       # Clean Markdown report for documentation
+├── excel/
+│   └── workbook.xlsx   # Multi-sheet Excel workbook with summary metrics & validation
+├── tables/
+│   ├── 01_4x8_cells.xlsx
+│   ├── 01_4x8_rle.json # Run-Length Encoded dataset
+│   ├── 01_4x8_ascii.txt# Aligned ASCII grid map book
+│   └── tables.html     # Interactive cell data table viewer with search filter
+├── figures/
+│   ├── 01_4x8_map.svg  # Pure vector SVG grid occupancy map
+│   └── ...
+├── terminal/
+│   └── terminal.txt    # Plain-text execution log with step timings
+└── manifest/
+    └── manifest.json   # Reproducibility metadata with SHA-256 checksum
+```
 
 ---
 
@@ -239,49 +348,15 @@ python run_analysis.py --dir input_svgs/ --levels 7
 | `--input` | Path | `None` | Path to a single input SVG file. Mutually exclusive with `--dir`. |
 | `--dir` | Path | `None` | Path to a directory containing SVG files for batch processing. Mutually exclusive with `--input`. |
 | `--levels` | Int | `7` | Number of grid levels to calculate ($N \ge 1$). Default runs $L01$--$L07$. |
-| `--measure` | String | `area` | Measurement mode. Default: `area` (evaluates fill area & stroke width). |
-| `--engine` | String | `cpu` | Computational engine. Default: `cpu` (CPU Exact GEOS Engine). |
+| `--measure` | String | `area` | Measurement mode (`area`: evaluates fill area & stroke width). |
+| `--engine` | String | `cpu` | Computational engine (`cpu`: CPU Exact GEOS Engine). |
 | `--profile` | String | `lean` | Export profile: `lean`, `reproducible`, `debug`, or `presentation`. |
 | `--output-dir` | Path | `outputs/` | Root directory for exported research packages. |
 | `--export-high-level-tables` | Flag | `False` | Forces per-cell XLSX dataset generation for Level 08. |
 
 ---
 
-## Academic Output Package Specifications
-
-Each analyzed SVG file produces an isolated research output package:
-
-```text
-outputs/[motif_name]/
-├── report/
-│   ├── report.pdf      # Publication PDF research report
-│   ├── report.html     # Browser-based report with image-free first screen
-│   └── report.md       # Clean Markdown report for documentation
-├── excel/
-│   └── workbook.xlsx   # Multi-sheet Excel workbook with summary metrics & validation
-├── tables/
-│   ├── 01_4x8_cells.xlsx
-│   ├── 02_8x16_cells.xlsx
-│   ├── ...
-│   └── tables.html     # Interactive cell data table viewer with search filter
-├── figures/
-│   ├── 01_4x8_map.svg  # Pure vector SVG grid occupancy map
-│   ├── 02_8x16_map.svg
-│   └── ...
-├── terminal/
-│   └── terminal.txt    # Execution log with step timings
-└── manifest/
-    └── manifest.json   # Reproducibility metadata with SHA-256 checksum
-```
-
-### Key Output Features
-- **Pure Vector SVG Grid Maps (`figures/*.svg`)**: Rendered directly as crisp SVG vector paths showing occupied cells (`#60A5FA`) and empty cells (`#FFFFFF`) overlaying the design.
-- **Interactive HTML Report (`report/report.html`)**: Features an **image-free first screen** for fast loading, containing executive summaries, regression statistics, and data tables.
-- **Reproducibility Manifest (`manifest/manifest.json`)**: Contains SHA-256 hash of the input SVG, software version, exact grid dimensions, GEOS/Shapely version details, timestamp, and platform metadata.
-
----
-
-## Reproducibility & Audit Controls
+## Reproducibility & Validation Controls
 
 RASH-HIT Fractal Studio incorporates automated validation tools to ensure dataset integrity:
 
