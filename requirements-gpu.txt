@@ -1,0 +1,19 @@
+# RASH-HIT Fractal Studio — GPU research & diagnostics dependencies.
+#
+# This file contains ONLY the packages required for GPU backend research,
+# hardware discovery and smoke testing (Stage 2+).
+#
+# The core CPU analysis engine (backend.processor, intersection_hierarchical,
+# geometry_engine, ...) does NOT depend on this file.
+#
+# NOTE: NVIDIA CUDA Toolkit is NOT a required end-user dependency. Taichi uses
+# the installed NVIDIA driver runtime directly. NumPy/pytest already exist in
+# the project .venv; they are intentionally not re-pinned here.
+#
+# Install with (project .venv only):
+#   .venv\Scripts\python.exe -m pip install -r requirements-gpu.txt
+
+taichi==1.7.4
+psutil
+pytest-benchmark
+nvidia-ml-py

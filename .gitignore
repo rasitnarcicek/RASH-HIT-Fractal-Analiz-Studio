@@ -39,6 +39,10 @@ uploads/*
 # Runtime configuration cache
 .rash_hit/
 
+# Stage 2 GPU diagnostics (machine-specific, not source-controlled)
+diagnostics/
+wheels/
+
 # Temporary build & patch scripts
 patch_*.py
 fix_*.py
