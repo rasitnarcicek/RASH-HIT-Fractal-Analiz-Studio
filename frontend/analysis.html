@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RASH-HIT Fractal Studio - Analysis Studio</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%232454A6'/%3E%3Cpath%20d='M8%208h16v4H12v4H8z'%20fill='white'/%3E%3Crect%20x='12'%20y='16'%20width='12'%20height='4'%20fill='white'/%3E%3Crect%20x='8'%20y='20'%20width='16'%20height='4'%20fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/main.css">
+  <script>
+    // Sync theme immediately to prevent flashing light mode
+    const savedTheme = localStorage.getItem('rash-hit-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+  <style>
+    .analysis-layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; padding: 20px; max-width: 1500px; margin: 0 auto; align-items: start; }
+    @media (max-width: 980px) { .analysis-layout { grid-template-columns: 1fr; } }
+    .analysis-left, .analysis-right { min-width: 0; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow); margin-bottom: 16px; }
+    .panel-hdr { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .history-filters { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .plain-count, .plain-status {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      color: var(--text);
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel2);
+    }
+    .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
+    .history-item { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+    .history-item:hover { border-color: var(--accent); background: var(--soft); }
+    .history-item.active { border-color: var(--accent); outline: 2px solid var(--soft); }
+    .history-item-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .history-file { font-weight: 700; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-sub { font-size: 10.5px; color: var(--muted); font-family: Consolas, monospace; }
+    .history-metrics { font-size: 10.5px; color: var(--muted); }
+    .empty-hint { font-size: 11px; color: var(--muted); text-align: center; padding: 12px; }
+    .progress-track { width: 100%; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; margin: 10px 0; }
+    .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .25s ease; border-radius: 5px; }
+    .stream-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--text); }
+    .stream-meta b { color: var(--accent); }
+    .panel-sub-hdr { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
+    .console-log { background: var(--panel2); color: var(--text); font-family: Consolas, monospace; font-size: 11px; padding: 12px; border-radius: 8px; height: 150px; overflow-y: auto; line-height: 1.45; border: 1px solid var(--border); }
+    .console-log .log-success { color: var(--ok); } .console-log .log-error { color: var(--err); } .console-log .log-warning { color: var(--warn); } .console-log .log-info { color: var(--accent); }
+    .recent-link { color: var(--accent); font-weight: 700; text-decoration: none; }
+    .recent-link:hover { text-decoration: underline; }
+    .history-files { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .job-file-chip {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1px 6px;
+      text-decoration: none;
+      white-space: nowrap;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: border-color .15s ease, color .15s ease;
+    }
+    .job-file-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .job-delete-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1;
+      padding: 3px 5px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity .15s ease, border-color .15s ease, background-color .15s ease;
+      flex-shrink: 0;
+    }
+    .history-item:hover .job-delete-btn,
+    .history-item:focus-within .job-delete-btn {
+      opacity: 1;
+    }
+    .job-delete-btn:hover {
+      border-color: var(--err);
+      background: var(--err-bg, rgba(220,38,38,.12));
+    }
+    .history-item.is-deleted {
+      opacity: .6;
+    }
+    /* Package Details full-window modal */
+    .pkg-detail-modal { z-index: 11000; }
+    .pkg-detail-box { width: min(96vw, 1150px); max-height: 92vh; padding: 0; overflow: hidden; }
+    .pkg-detail-modal-hdr {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 14px 20px; background: var(--sb, #0F172A); color: var(--sb-txt, #F8FAFC);
+      border-bottom: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .pkg-detail-modal-title { font-size: 16px; font-weight: 800; color: #FFF; }
+    .pkg-detail-modal-sub { font-size: 11px; color: #94A3B8; font-family: Consolas, monospace; }
+    .pkg-detail-body { padding: 18px 22px; }
+    .pkg-detail-body .kpi-row { display: grid; gap: 10px; }
+    .pkg-detail-body .svg-thumb-card img { width: 100%; height: 120px; object-fit: contain; background: #FFF; border: 1px solid var(--border); border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <h1 class="app-title">ANALYSIS STUDIO</h1>
+    <div class="app-author">Geometric Complexity & Dimension Analysis via Fractal Box-Counting &middot; Mehmet Raşit NARÇİÇEK</div>
+  </div>
+  <div class="header-tools">
+    <span class="server-badge" id="serverBadge">Connected</span>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme"></button>
+  </div>
+</header>
+
+<nav class="nav-bar">
+  <a class="nav-btn" href="index.html" data-testid="nav-dashboard">Dashboard</a>
+  <a class="nav-btn active" href="analysis.html">🔬 Analysis Studio</a>
+</nav>
+
+<div id="fileProtocolBanner" class="protocol-banner">
+  ⚠️ The Analysis Studio requires the web server. Please open it via <code>launcher.py</code> in web server mode.
+</div>
+
+<!-- SVG Map Preview Modal (wheel zoom + arrow-key gallery navigation) -->
+<div id="svgModal" class="modal" role="dialog" aria-modal="true" aria-label="SVG Preview" onclick="closeSvgModal()">
+  <div class="modal-box" style="width:min(94vw, 900px);padding:14px;text-align:center;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">
+      <div style="font-size:13px;font-weight:800;color:var(--text);" id="svgModalLabel">SVG Map Preview</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <span id="galleryCounter" style="font-size:11px;font-weight:800;color:var(--muted);font-family:Consolas,monospace;background:var(--panel2);border:1px solid var(--border);border-radius:999px;padding:3px 10px;"></span>
+        <button class="btn btn-sm" onclick="svgZoomOut()" title="Zoom out">−</button>
+        <button class="btn btn-sm" onclick="svgZoomIn()" title="Zoom in">+</button>
+        <button class="btn btn-sm" onclick="svgZoomReset()" title="Reset zoom">⤾</button>
+        <a id="svgModalOpenBtn" href="#" target="_blank" rel="noopener" class="btn btn-sm" data-testid="svg-open-full">Open SVG</a>
+        <button class="btn btn-sm" data-testid="svg-close-btn" onclick="closeSvgModal()">✕ Close</button>
+      </div>
+    </div>
+    <div id="galleryStage" style="position:relative;display:flex;align-items:center;justify-content:center;gap:6px;" onwheel="svgOnWheel(event)" ondblclick="svgZoomReset()">
+      <button class="gallery-arrow gallery-prev" onclick="svgNav(-1)" aria-label="Previous image">&#10094;</button>
+      <div style="overflow:hidden;border:1px solid var(--border);border-radius:8px;background:#FFFFFF;flex:1;max-height:66vh;display:flex;align-items:center;justify-content:center;padding:10px;">
+        <img id="svgModalImg" src="" alt="SVG Map Preview" draggable="false" style="max-width:100%;max-height:62vh;object-fit:contain;transform-origin:center center;transition:transform .1s ease,opacity .2s ease;display:block;">
+      </div>
+      <button class="gallery-arrow gallery-next" onclick="svgNav(1)" aria-label="Next image">&#10095;</button>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;">Scroll to zoom &middot; Arrow keys to browse &middot; Double-click to reset</div>
+  </div>
+</div>
+
+<!-- Folder Browser Modal (Open Folder: render the package folder contents on screen) -->
+<div id="folderBrowserModal" class="modal" role="dialog" aria-modal="true" aria-label="Package Folder Contents" onclick="closeFolderBrowserModal()">
+  <div class="modal-box" style="width:min(94vw, 900px);padding:18px;text-align:left;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:var(--text);">📂 Package Folder</div>
+        <div id="folderBrowserPath" style="font-size:11px;color:var(--muted);font-family:Consolas,monospace;margin-top:2px;">outputs/…</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="folderBrowserCount" class="badge badge-version">0 files</span>
+        <button class="btn btn-sm" data-testid="folder-browser-copy" onclick="copyFolderBrowserPath()">Copy Path</button>
+        <button class="btn btn-sm" data-testid="folder-browser-close" onclick="closeFolderBrowserModal()">✕ Close</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <input type="text" id="folderBrowserSearch" class="sb-input" placeholder="Filter files…" style="margin-bottom:0;flex:1;padding:6px 10px;" oninput="filterFolderBrowser()" aria-label="Filter folder files">
+      <span id="folderBrowserTotalSize" style="font-size:11px;color:var(--muted);white-space:nowrap;"></span>
+    </div>
+    <div id="folderBrowserList" style="max-height:55vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--bg);"></div>
+  </div>
+</div>
+
+<!-- Package Details Modal (full-screen window like report.html) -->
+<div id="pkgDetailPanel" class="modal pkg-detail-modal" data-testid="pkg-detail-panel" role="dialog" aria-modal="true" aria-label="Package Details" onclick="closePackageDetail()" style="z-index:11000;">
+  <div class="modal-box pkg-detail-box" onclick="event.stopPropagation()">
+    <div class="pkg-detail-modal-hdr">
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span class="pkg-detail-modal-title" id="pkgDetailTitle">Package Details</span>
+        <span id="pkgDetailSub" class="pkg-detail-modal-sub"></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-sm" data-testid="pkg-detail-close-btn" onclick="closePackageDetail()">✕ Close</button>
+      </div>
+    </div>
+    <div id="pkgDetailBody" class="pkg-detail-body" style="flex:1;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div class="analysis-layout">
+
+  <div class="analysis-left">
+
+    <div class="panel" id="runPanel" data-testid="run-panel">
+      <div class="panel-hdr"><span>Run Analysis</span></div>
+
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button type="button" class="btn btn-primary" id="btnTargetSingle" style="flex:1;margin:0;" onclick="selectTargetType('single')">Single SVG</button>
+        <button type="button" class="btn" id="btnTargetFolder" style="flex:1;margin:0;" onclick="selectTargetType('folder')">Folder (Batch)</button>
+      </div>
+
+      <label class="cb-label" id="lblInputPath" style="font-weight:700;">SVG File Path:</label>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <input type="text" class="sb-input" id="webInputPath" oninput="onInputPathChange()" onchange="onInputPathChange()" name="inputPath" autocomplete="off" placeholder="Select an SVG file..." style="margin-bottom:0;flex:1;">
+        <button type="button" class="btn" id="btnBrowseTarget" style="width:auto;padding:6px 10px;margin:0;white-space:nowrap;" onclick="triggerBrowse()">Browse…</button>
+      </div>
+      <input type="file" id="singleSvgInput" accept=".svg" style="display:none;" onchange="handleSingleSvgSelect(event)">
+      <input type="file" id="folderBatchInput" webkitdirectory directory multiple style="display:none;" onchange="handleFolderBatchSelect(event)">
+      <div id="folderCountLabel" style="display:none;font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px;font-family:monospace;"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div>
+          <label class="cb-label" for="webModeSelect" style="font-weight:700;">Mod:</label>
+          <select id="webModeSelect" class="sb-input" style="margin-bottom:0;" onchange="updateModeDefaultLevels(this)">
+            <option value="balanced" selected>balanced (7 levels)</option>
+            <option value="fast">fast (5 levels)</option>
+            <option value="precise">precise (9 levels)</option>
+            <option value="academic">academic (10 levels)</option>
+            <option value="custom">custom</option>
+          </select>
+        </div>
+        <div>
+          <label class="cb-label" for="webLevelsInput" style="font-weight:700;">Number of Levels:</label>
+          <input type="number" class="sb-input" id="webLevelsInput" name="levels" autocomplete="off" value="7" min="1" max="50" style="margin-bottom:0;">
+        </div>
+      </div>
+
+      <label class="cb-label overwrite-cb" title="When checked, overwrites the existing package with the same motif.">
+        <input type="checkbox" id="chkOverwrite">
+        <span><b>Overwrite existing package</b></span>
+      </label>
+
+      <button class="btn btn-primary" id="btnRunWeb" style="width:100%;padding:9px;margin-top:4px;" onclick="startAnalysis()" disabled>Run Analysis</button>
+    </div>
+
+    <div class="panel" id="historyPanel" data-testid="history-panel">
+      <div class="panel-hdr"><span>Job History</span><span id="jobCountBadge" class="plain-count">0</span></div>
+      <div class="history-filters">
+        <select id="jobTimeFilter" class="sb-input" style="flex:1;min-width:110px;margin:0;padding:4px 8px;font-size:11px;" onchange="applyJobFilters()" aria-label="Filter by time range">
+          <option value="all" selected>All time</option>
+          <option value="24h">Last 24 Hours</option>
+          <option value="7d">Last 7 Days</option>
+          <option value="30d">Last 30 Days</option>
+        </select>
+        <select id="jobMotifFilter" class="sb-input" style="flex:1;min-width:110px;margin:0;padding:4px 8px;font-size:11px;" onchange="applyJobFilters()" aria-label="Filter by motif">
+          <option value="" selected>All motifs</option>
+        </select>
+        <button type="button" class="btn btn-sm" style="padding:4px 8px;margin:0;" onclick="clearJobFilters()" aria-label="Clear filters">Reset</button>
+      </div>
+      <div id="jobHistoryList" class="history-list"><div class="empty-hint">No analyses have been run yet.</div></div>
+    </div>
+
+    <div class="panel" id="recentPanel" data-testid="recent-panel">
+      <div class="panel-hdr"><span>Recently Analyzed Files</span></div>
+      <div id="recentFilesList" class="history-list"><div class="empty-hint">No packages found yet.</div></div>
+    </div>
+
+  </div>
+
+  <div class="analysis-right">
+    <div class="panel" id="streamPanel" data-testid="stream-panel">
+      
+      <div class="panel-hdr"><span>Live Analysis Stream</span><span id="streamStatusChip" class="plain-status">IDLE</span></div>
+
+      <div class="stream-meta">
+        <span><span>Job ID:</span> <b id="streamJobId" class="mono">-</b></span>
+        <span><span>File:</span> <b id="streamFile">-</b></span>
+        <span><span>Step:</span> <b id="streamStep">-</b></span>
+        <span><span>Elapsed:</span> <b id="streamElapsed" class="mono">00:00</b></span>
+        <span><span>Progress:</span> <b id="streamPct">0%</b></span>
+      </div>
+      <div class="progress-track"><div id="streamProgressBar" class="progress-fill"></div></div>
+
+      <div style="overflow-x:auto;">
+        <table class="scale-table">
+          <thead>
+            <tr>
+              <th>Level</th>
+              <th>Grid</th>
+              <th class="num">Total Cells</th>
+              <th class="num">Filled</th>
+              <th class="num">Empty</th>
+              <th class="num">Occupancy %</th>
+              <th>Cell Size</th>
+              <th class="num">Duration</th>
+              <th>Fit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="streamScaleBody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel-sub-hdr">Event Log</div>
+      <div id="streamLog" class="console-log"></div>
+
+      <div id="streamFinalActions" style="display:none;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <a id="btnStreamReport" href="#" target="_blank" rel="noopener" class="btn btn-primary">Open Report</a>
+        <a id="btnStreamTables" href="#" target="_blank" rel="noopener" class="btn">View Tables</a>
+        <a id="btnStreamWorkbook" href="#" target="_blank" rel="noopener" class="btn">Workbook</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/analysis-page.js"></script>
+<script>
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', current);
+  localStorage.setItem('rash-hit-theme', current);
+}
+const saved = localStorage.getItem('rash-hit-theme') || 'light';
+document.documentElement.setAttribute('data-theme', saved);
+</script>
+
+
+
+</body>
+</html>

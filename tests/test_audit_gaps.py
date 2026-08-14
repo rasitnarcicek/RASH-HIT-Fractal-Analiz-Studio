@@ -127,13 +127,13 @@ class TestFractalZeroVariance(unittest.TestCase):
         return items
 
     def test_constant_counts_give_nan_r2(self):
-        from backend.fractal_analyzer import compute_fractal_dimension
+        from backend.regression import compute_fractal_dimension
         fa = compute_fractal_dimension(self._results([100, 100, 100, 100, 100]))
         self.assertTrue(math.isnan(fa.r2_score),
                         f"Expected NaN R2 on zero-variance data, got {fa.r2_score}")
 
     def test_varying_counts_give_finite_r2(self):
-        from backend.fractal_analyzer import compute_fractal_dimension
+        from backend.regression import compute_fractal_dimension
         fa = compute_fractal_dimension(self._results([10, 40, 160, 640, 2560]))
         self.assertFalse(math.isnan(fa.r2_score),
                          "Expected finite R2 on varying data, got NaN")

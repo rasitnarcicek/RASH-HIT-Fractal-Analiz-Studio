@@ -518,17 +518,15 @@ def extract_node_geometries(
                 if not poly.is_empty:
                     polygons.append(poly)
         if polygons:
-            fill_rule = node.styles.get('fill-rule', node.attribs.get('fill-rule', 'nonzero')).lower().strip()
             if len(polygons) == 1:
                 fill_obj = polygons[0]
             else:
-                if fill_rule == 'evenodd':
-                    polygons.sort(key=lambda p: p.area, reverse=True)
-                    fill_obj = polygons[0]
-                    for p in polygons[1:]:
-                        fill_obj = fill_obj.symmetric_difference(p)
-                else: # nonzero fill rule default
-                    fill_obj = unary_union(polygons)
+                # Compound path subpaths (e.g. outer boundary with inner holes)
+                # Sort by area descending so outer boundary is processed first
+                polygons.sort(key=lambda p: p.area, reverse=True)
+                fill_obj = polygons[0]
+                for p in polygons[1:]:
+                    fill_obj = fill_obj.symmetric_difference(p)
             if fill_obj and not fill_obj.is_empty:
                 geoms.append(ParsedGeometry('fill', fill_obj, tag=tag))
 

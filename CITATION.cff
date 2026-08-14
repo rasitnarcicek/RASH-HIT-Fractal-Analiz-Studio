@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software in your research, please cite it as below."
 title: "RASH-HIT Fractal Studio"
-version: "1.0.5"
+version: "1.0.6"
 date-released: "2026-07-30"
 license: "Apache-2.0"
 repository-code: "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio"

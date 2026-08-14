@@ -1,0 +1,65 @@
+/* RASH-HIT Fractal Studio - Unified CSS Design System Tokens
+   Light + Dark themes share the same token names. */
+:root {
+  /* Drafting sheet (light) */
+  --bg: #F8FAFC;
+  --panel: #FFFFFF;
+  --panel2: #F1F5F9;
+  --sb: #0F172A;
+  --sb-txt: #F8FAFC;
+  --text: #0F172A;
+  --muted: #64748B;
+  --border: #E2E8F0;
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
+  --accent2: #64748B;
+  --soft: #DBEAFE;
+  --hdr: #FFFFFF;
+  --sb-hdr-txt: #0F172A;
+  --sb-eyebrow: #475569;
+  --sb-title: #0F172A;
+  --sb-author: #475569;
+  --ok: #059669;
+  --ok-bg: #DCFCE7;
+  --warn: #D97706;
+  --warn-bg: #FEF3C7;
+  --err: #DC2626;
+  --err-bg: #FEE2E2;
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  /* Drafting board (dark) */
+  --bg: #020617;
+  --panel: #0F172A;
+  --panel2: #1E293B;
+  --sb: #020617;
+  --sb-txt: #F8FAFC;
+  --text: #F1F5F9;
+  --muted: #94A3B8;
+  --border: #334155;
+  --accent: #3B82F6;
+  --accent-hover: #60A5FA;
+  --accent2: #475569;
+  --soft: #1E3A8A;
+  --hdr: #0F172A;
+  --sb-hdr-txt: #F8FAFC;
+  --sb-eyebrow: #94A3B8;
+  --sb-title: #FFFFFF;
+  --sb-author: #BFD0EA;
+  --ok: #34D399;
+  --ok-bg: #064E3B;
+  --warn: #F59E0B;
+  --warn-bg: #78350F;
+  --err: #F87171;
+  --err-bg: #7F1D1D;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+  color-scheme: dark;
+}

@@ -1,0 +1,33 @@
+{
+  "name": "rash-hit-fractal-studio",
+  "version": "1.0.6",
+  "description": "SVG Vector Geometry Fractal Analysis Engine & Interactive Dashboard",
+  "author": "Mehmet Rasit Narcicek",
+  "license": "Apache-2.0",
+  "bin": {
+    "rash-hit": "bin/rash-hit.js",
+    "rashhit": "bin/rash-hit.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "start": "node bin/rash-hit.js",
+    "setup": "node bin/rash-hit.js --setup",
+    "check": "node bin/rash-hit.js --check",
+    "build": "py -3 -c \"from pathlib import Path; from backend.package_index import update_package_index; update_package_index(Path('outputs'))\"",
+    "clean": "py -3 -c \"from pathlib import Path; import shutil; [shutil.rmtree(p, ignore_errors=True) for p in Path('outputs').glob('*/terminal')]\"",
+    "generate": "py -3 run_analysis.py --input input_svgs/16D.svg --levels 7 --engine cpu",
+    "validate": "py -3 tools/validate_license_docs.py",
+    "test": "py -3 -m pytest tests/",
+    "test:js": "node --test tests/js/*.test.mjs",
+    "lint": "py -3 -m pyflakes backend/ run_analysis.py launcher.py"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
+

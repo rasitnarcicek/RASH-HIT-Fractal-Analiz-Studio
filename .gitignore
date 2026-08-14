@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -17,14 +17,27 @@ env/
 Thumbs.db
 .gemini/
 .antigravity/
+.codex/
+.claude/
+
+# Node.js dependencies (frontend build tooling)
+node_modules/
 
 # Generated outputs & logs
-outputs/
+outputs/*
+!outputs/.gitkeep
 output_reports/
 debug/
 logs/
 *.log
 task-*.log
+
+# Web server upload staging — keep directory, ignore content
+uploads/*
+!uploads/.gitkeep
+
+# Runtime configuration cache
+.rash_hit/
 
 # Temporary build & patch scripts
 patch_*.py
@@ -32,11 +45,13 @@ fix_*.py
 write_*.py
 make_*.py
 move_*.py
-update_*.py
 build_*.py
 *.tmp
 *.bak
 scratch/
+
+# Frontend vendor (third-party bundled libraries)
+frontend/vendor/
 
 # Internal master architecture & benchmark files
 PROJE_MIMARI_VE_KOD_HARITASI.md

@@ -15,7 +15,7 @@ from backend.svg_loader import SVGNode
 from backend.artifact_validator import (
     parse_ascii_file, parse_mask_file, parse_rle_file, parse_svg_rects_xml
 )
-from backend.fractal_analyzer import compute_fractal_dimension
+from backend.regression import compute_fractal_dimension
 from backend.intersection_cpu import CPULevelResult
 
 
@@ -111,3 +111,23 @@ class TestAuditGaps2(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestDeprecatedModulesInactive(unittest.TestCase):
+    """ISSUE-014 (guard test - documented fail-first exception): the deprecated
+    dashboard generator modules (dashboard_exporter, dashboard_js) must stay
+    unwired from the active web server / analysis flow so the outputs/ pure-data
+    rule (no outputs/index.html) holds. Expected to pass immediately; it locks
+    in the current correct state."""
+
+    ROOT = Path(__file__).resolve().parent.parent
+
+    def test_deprecated_modules_not_wired_into_active_endpoints(self):
+        targets = ["backend/web_server.py", "backend/processor.py",
+                   "launcher.py", "run_analysis.py"]
+        pats = ("import dashboard_exporter", "from backend.dashboard_exporter",
+                "import dashboard_js", "from backend.dashboard_js")
+        for rel in targets:
+            src = (self.ROOT / rel).read_text(encoding="utf-8")
+            for pat in pats:
+                self.assertNotIn(pat, src, f"{rel} must not contain {pat!r}")

@@ -1,4 +1,6 @@
 from __future__ import annotations
+from html import escape as html_escape
+import unicodedata
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Mehmet Raşit Narçiçek
 
@@ -13,16 +15,15 @@ from pathlib import Path
 from typing import Union, List, Set, Tuple, Dict, Any, Optional
 from dataclasses import dataclass, field
 def sanitize_output_slug(stem: str) -> str:
-    """Sanitizes input stem into a safe folder slug allowing only [a-zA-Z0-9_-]."""
+    """Sanitizes input stem into a safe folder slug allowing unicode/Turkish chars, replacing only dangerous symbols."""
     if not stem:
         return "motif"
-    clean = re.sub(r'[^a-zA-Z0-9_-]', '_', str(stem))
+    clean = unicodedata.normalize("NFC", str(stem))
+    clean = re.sub(r'[\\/*?:"<>|\s\.]', '_', clean)
     clean = clean.strip('-_')
     if not clean or clean in ('.', '..'):
-        clean = "motif"
+        return "motif"
     return clean
-
-from html import escape as html_escape
 
 def esc_html(value: object) -> str:
     return html_escape(str(value), quote=True)
@@ -61,6 +62,10 @@ class LevelReportModel:
     filled_set: Set[Tuple[int, int]] = field(default_factory=set)
 
 @dataclass
+@dataclass
+@dataclass
+@dataclass
+@dataclass
 class AnalysisReportModel:
     motif: str
     safe_name: str
@@ -74,8 +79,8 @@ class AnalysisReportModel:
     db: float
     r2: float
     total_time_ms: float
-    hardware_info: str = "CPU Exact Vector Geometry Engine"
     levels: List[LevelReportModel] = field(default_factory=list)
+    hardware_info: str = "CPU Exact Vector Geometry Engine"
 
 def compute_sha256(filepath: Path) -> str:
     h = hashlib.sha256()
@@ -216,6 +221,7 @@ def generate_master_table_files(
 ) -> Tuple[Optional[Path], Optional[Path], Optional[Path]]:
     if profile is None: profile = load_output_profile("lean")
     safe_stem = model.safe_name
+    xlsx_table_p = None
 
     csv_lines = ["level,cols,rows,grid_label,total_cells,filled_cells,empty_cells,fill_ratio,occupancy_percent,cell_w,cell_h,execution_time_ms,mode"]
     for lvl in model.levels:
@@ -277,7 +283,7 @@ def generate_master_table_files(
         mask_bits = []
         for r in range(rows):
             for c in range(cols):
-                is_fil = (c, r) in filled_set
+                is_fil = (r, c) in filled_set
                 st_str = "filled" if is_fil else "empty"
                 occ_val = 1 if is_fil else 0
                 mask_bits.append("1" if is_fil else "0")
@@ -353,7 +359,7 @@ def generate_master_table_files(
                 r_cell.border = white_border
 
                 for c in range(grid_cols):
-                    is_fil = (c, r) in filled_set
+                    is_fil = (r, c) in filled_set
                     xmin = c * cw
                     ymin = r * ch
                     cx = (xmin + (xmin + cw)) / 2.0
@@ -483,7 +489,7 @@ def generate_interactive_table_viewer(model: AnalysisReportModel, out_dir_tables
         for r in range(lvl.rows):
             for c in range(lvl.cols):
                 if curr >= limit: break
-                is_fil = (c, r) in filled_set
+                is_fil = (r, c) in filled_set
                 xmin = c * cw; ymin = r * ch; xmax = xmin + cw; ymax = ymin + ch
                 cx = (xmin + xmax) / 2.0; cy = (ymin + ymax) / 2.0
                 rows_list.append([
@@ -676,18 +682,18 @@ def format_aligned_ascii_map(cols: int, rows: int, filled_set: set) -> list[str]
     if cols <= 32:
         col_hdr_str = "".join(f" C{c+1:02d}" for c in range(cols))
         def fmt_row(r):
-            return "".join("  1 " if (c, r) in filled_set else "  0 " for c in range(cols))
+            return "".join("  1 " if (r, c) in filled_set else "  0 " for c in range(cols))
         hdr_lines = [f"{'':>{row_lbl_w}} | {col_hdr_str}"]
     elif cols <= 64:
         col_hdr_str = "".join(f"C{c+1:02d}" for c in range(cols))
         def fmt_row(r):
-            return "".join(" 1 " if (c, r) in filled_set else " 0 " for c in range(cols))
+            return "".join(" 1 " if (r, c) in filled_set else " 0 " for c in range(cols))
         hdr_lines = [f"{'':>{row_lbl_w}} | {col_hdr_str}"]
     else:
         tens = "".join(str(((c + 1) // 10) % 10) if (c + 1) >= 10 else " " for c in range(cols))
         ones = "".join(str((c + 1) % 10) for c in range(cols))
         def fmt_row(r):
-            return "".join("1" if (c, r) in filled_set else "0" for c in range(cols))
+            return "".join("1" if (r, c) in filled_set else "0" for c in range(cols))
         hdr_lines = [
             f"{'':>{row_lbl_w}} | {tens}",
             f"{'':>{row_lbl_w}} | {ones}"
@@ -1028,7 +1034,7 @@ def generate_excel_workbook(
             for c in range(cols):
                 cell = ws_m.cell(row=r_excel, column=c+3)
                 cell.value = None
-                cell.fill = fill_color_m if (c, r) in filled_set else empty_color_m
+                cell.fill = fill_color_m if (r, c) in filled_set else empty_color_m
                 cell.alignment = Alignment(horizontal="center", vertical="center")
                 cell.border = thin_border
 
@@ -1038,7 +1044,7 @@ def generate_excel_workbook(
         ws_coord = wb.create_sheet(title=f"Level {lvl_fmt} SVG Coordinate Map")
         ws_coord.views.sheetView[0].showGridLines = True
         ws_coord.cell(row=1, column=2, value=f"LEVEL {lvl_fmt} SVG COORDINATE MAP ({res_str})").font = Font(name="Consolas", size=12, bold=True, color="1E293B")
-        ws_coord.cell(row=2, column=2, value="Koordinatliı SVG Haritasiı (svg_center_x, svg_center_y)").font = sub_font
+        ws_coord.cell(row=2, column=2, value="Coordinate SVG Map (svg_center_x, svg_center_y)").font = sub_font
 
         ws_coord.column_dimensions["A"].width = 4
         ws_coord.column_dimensions["B"].width = 10
@@ -1073,7 +1079,7 @@ def generate_excel_workbook(
             r_cell.border = white_border
 
             for c in range(cols):
-                is_fil = (c, r) in filled_set
+                is_fil = (r, c) in filled_set
                 xmin = c * cw
                 ymin = r * ch
                 cx = (xmin + (xmin + cw)) / 2.0
@@ -1104,12 +1110,12 @@ def generate_excel_workbook(
         cols, rows = l.cols, l.rows
         filled_set = l.filled_set
         for r in range(rows):
-            fc = sum(1 for c in range(cols) if (c, r) in filled_set)
+            fc = sum(1 for c in range(cols) if (r, c) in filled_set)
             ec = cols - fc
             pct = (fc / cols) * 100.0 if cols > 0 else 0.0
             ws_rc_sum.append([l.level, l.grid_label, "Row", r+1, f"R{r+1:02d}", fc, ec, round(pct, 2)])
         for c in range(cols):
-            fc = sum(1 for r in range(rows) if (c, r) in filled_set)
+            fc = sum(1 for r in range(rows) if (r, c) in filled_set)
             ec = rows - fc
             pct = (fc / rows) * 100.0 if rows > 0 else 0.0
             ws_rc_sum.append([l.level, l.grid_label, "Column", c+1, f"C{c+1:02d}", fc, ec, round(pct, 2)])
@@ -1206,188 +1212,113 @@ def generate_excel_workbook(
         raise PermissionError(f"Could not save Excel workbook to {excel_path} after 5 attempts (file is locked or permission denied).")
     return excel_path
 
-def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Path) -> Path:
-    """Generates report/report.html with an IMAGE-FREE FIRST SCREEN and no Output Figure Cards section."""
-    html_path = out_dir_report / "report.html"
+def generate_academic_html_report(model: AnalysisReportModel, out_dir_report: Path, profile=None) -> Path:
+    from backend.html_templates.report_template import build_academic_report_html
 
+    html_path = out_dir_report / "report.html"
     total_levels = len(model.levels)
     max_level = max(l.level for l in model.levels) if model.levels else 0
 
-    lines = [
-        "<!DOCTYPE html>",
-        '<html lang="en">',
-        "<head>",
-        '  <meta charset="UTF-8">',
-        '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
-        '  <meta name="description" content="RASH-HIT Fractal Studio v1.0 - Academic Analysis Report">',
-        f'  <title>RASH-HIT Fractal Studio v1.0 - Academic Analysis Report ({esc_html(model.motif)})</title>',
-        "  <style>",
-        "    :root {",
-        "      --bg: #F8FAFC; --panel: #FFFFFF; --text: #111827; --muted: #4B5563;",
-        "      --border: #D1D5DB; --accent: #1D4ED8; --pass: #166534; --pass-bg: #DCFCE7;",
-        "    }",
-        "    * { box-sizing: border-box; }",
-        "    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 32px 24px; line-height: 1.6; }",
-        "    .container { max-width: 1100px; margin: 0 auto; }",
-        "    .header { background: #1E293B; color: #FFFFFF; padding: 32px 36px; border-radius: 12px; margin-bottom: 24px; }",
-        "    .header h1 { margin: 0 0 6px 0; font-size: 26px; font-weight: 700; }",
-        "    .header .subtitle { margin: 0 0 12px 0; font-size: 14px; color: #94A3B8; }",
-        "    .header .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 12px; margin-top: 16px; border-top: 1px solid #334155; padding-top: 16px; color: #CBD5E1; }",
-        "    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 28px; }",
-        "    .kpi-card { background: var(--panel); border: 1px solid var(--border); padding: 18px 20px; border-radius: 10px; text-align: center; }",
-        "    .kpi-val { font-size: 24px; font-weight: 800; color: var(--accent); margin: 4px 0 2px 0; font-variant-numeric: tabular-nums; }",
-        "    .kpi-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }",
-        "    .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }",
-        "    .section { background: var(--panel); border: 1px solid var(--border); padding: 24px 28px; border-radius: 10px; margin-bottom: 24px; }",
-        "    .section h2 { margin: 0 0 16px 0; font-size: 18px; color: var(--text); border-bottom: 2px solid #E5E7EB; padding-bottom: 8px; font-weight: 700; }",
-        "    .section p { font-size: 13.5px; color: var(--muted); margin: 0 0 12px 0; }",
-        "    table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 12px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }",
-        "    th { background: #1E293B; color: #FFFFFF; font-weight: 700; text-align: left; padding: 11px 16px; white-space: nowrap; font-size: 12px; text-transform: uppercase; }",
-        "    td { padding: 10px 16px; border-bottom: 1px solid #E5E7EB; color: #334155; white-space: nowrap; font-family: 'Consolas', monospace; font-size: 12.5px; }",
-        "    tr:last-child td { border-bottom: none; }",
-        "    tr:nth-child(even) td { background-color: #F8FAFC; }",
-        "    tr:hover td { background-color: #EFF6FF; }",
-        "    .badge-pass { display: inline-block; background: var(--pass-bg); color: var(--pass); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }",
-        "    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }",
-        "    .gallery-card { background: #FFFFFF; border: 1px solid var(--border); padding: 14px; border-radius: 8px; text-align: center; }",
-        "    .gallery-card img { width: 100%; height: auto; object-fit: contain; border: 1px solid #E2E8F0; border-radius: 4px; }",
-        "    .gallery-card .gc-label { margin: 8px 0 2px 0; font-size: 12px; font-weight: 700; color: var(--text); }",
-        "    .gallery-card .gc-sub { font-size: 11px; color: var(--muted); }",
-        "    .footer { text-align: center; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }",
-        "  </style>",
-        "</head>",
-        "<body>",
-        '  <div class="container">',
-        '    <!-- 1. Header (Image-Free First Screen) -->',
-        '    <div class="header">',
-        '      <h1>RASH-HIT Fractal Studio v1.0 - Academic Analysis Report</h1>',
-        f'      <div class="subtitle">{esc_html(model.motif)} - Box-Counting Fractal Dimension Analysis &amp; Output Package</div>',
-        '      <div class="meta-grid">',
-        f'        <div><strong>Source File:</strong> {esc_html(Path(model.source_file).name)}</div>',
-        f'        <div><strong>ViewBox:</strong> {model.viewbox_width:.2f} x {model.viewbox_height:.2f}</div>',
-        f'        <div><strong>Geometries:</strong> {model.vector_geometry_count:,} elements</div>',
-        f'        <div><strong>Engine:</strong> {esc_html(model.analysis_engine)}</div>',
-        f'        <div><strong>Generated:</strong> {model.generated_at}</div>',
-        '      </div>',
-        '    </div>',
-        '    <!-- 2. KPI Cards -->',
-        '    <div class="kpi-grid">',
-        f'      <div class="kpi-card"><div class="kpi-lbl">Fractal Dimension (Db)</div><div class="kpi-val">{model.db:.4f}</div><div class="kpi-sub">Box-counting method</div></div>',
-        f'      <div class="kpi-card"><div class="kpi-lbl">Log-Log Fit (R²)</div><div class="kpi-val" style="color:#166534;">{model.r2:.4f}</div><div class="kpi-sub">Linear fit quality</div></div>',
-        f'      <div class="kpi-card"><div class="kpi-lbl">Grid Levels</div><div class="kpi-val">{total_levels}</div><div class="kpi-sub">L01 -> L{max_level:02d}</div></div>',
-        f'      <div class="kpi-card"><div class="kpi-lbl">Execution Time</div><div class="kpi-val" style="font-size:20px;">{model.total_time_ms:.2f} ms</div><div class="kpi-sub">Complete pipeline</div></div>',
-        '      <div class="kpi-card"><div class="kpi-lbl">Validation Status</div><div class="kpi-val" style="color:#166534;font-size:20px;">PASSED</div><div class="kpi-sub">42-check quality audit</div></div>',
-        '    </div>',
-        '    <!-- 3. Method Summary -->',
-        '    <div class="section">',
-        '      <h2>Methodology &amp; Computational Summary</h2>',
-        '      <p>This academic package presents a publication-ready box-counting fractal dimension analysis for SVG vector geometry. Vector-grid intersections were evaluated across hierarchical doubling grid levels using exact vector geometry predicate algorithms.</p>',
-        '    </div>',
-        '    <!-- 4. Fractal Result Table -->',
-        '    <div class="section">',
-        '      <h2>Fractal Analysis Result</h2>',
-        '      <table>',
-        '        <thead><tr><th>Parameter</th><th>Value</th><th>Description</th></tr></thead>',
-        '        <tbody>',
-        f'          <tr><td>Fractal Dimension (Db)</td><td style="font-weight:700;color:#1D4ED8;">{model.db:.4f}</td><td>Box-counting log-log regression slope</td></tr>',
-        f'          <tr><td>Regression Fit (R²)</td><td style="font-weight:700;color:#166534;">{model.r2:.4f}</td><td>Log-log linear regression score</td></tr>',
-        f'          <tr><td>Analysis Engine</td><td>{esc_html(model.analysis_engine)}</td><td>Vector geometry intersection engine</td></tr>',
-        f'          <tr><td>Total Execution Time</td><td>{model.total_time_ms:.2f} ms</td><td>Pipeline execution time</td></tr>',
-        '        </tbody>',
-        '      </table>',
-        '    </div>',
-        '    <!-- 5. Level Metrics Table -->',
-        '    <div class="section">',
-        '      <h2>Grid Level Occupancy Overview</h2>',
-        '      <table>',
-        '        <thead><tr><th>Level</th><th>Grid</th><th>Total Cells</th><th>Filled</th><th>Empty</th><th>Occupancy (%)</th><th>Cell Size (WxH)</th><th>Time (ms)</th></tr></thead>',
-        '        <tbody>'
-    ]
+    src_name = esc_html(Path(model.source_file).name)
+    motif_h = esc_html(model.motif)
 
-    for l in model.levels:
-        lines.append(
-            f'          <tr>'
-            f'<td>L{l.level:02d}</td>'
-            f'<td>{l.grid_label}</td>'
-            f'<td>{l.total_cells:,}</td>'
-            f'<td style="color:#166534;font-weight:700;">{l.filled_cells:,}</td>'
-            f'<td style="color:#64748B;">{l.empty_cells:,}</td>'
-            f'<td>{l.occupancy_percent:.2f}%</td>'
-            f'<td>{l.cell_w:.2f} x {l.cell_h:.2f}</td>'
-            f'<td>{l.execution_time_ms:.2f}</td>'
-            f'</tr>'
+    # ── Level metrics table rows ─────────────────────────────────────────────
+    level_rows = []
+    for lv in model.levels:
+        level_rows.append(
+            "<tr>"
+            + f"<td>L{lv.level:02d}</td><td>{lv.grid_label}</td>"
+            + f"<td>{lv.total_cells:,}</td>"
+            + f"<td><b>{lv.filled_cells:,}</b></td>"
+            + f"<td>{lv.empty_cells:,}</td>"
+            + f"<td>{lv.occupancy_percent:.2f}%</td>"
+            + f"<td>{lv.cell_w:.2f} x {lv.cell_h:.2f}</td>"
+            + f"<td>{lv.execution_time_ms:.2f}</td>"
+            + "</tr>"
         )
+    level_table_rows = "\n".join(level_rows)
 
-    lines.extend([
-        '        </tbody>',
-        '      </table>',
-        '    </div>',
-        '    <!-- 6. Grid Level Visual Gallery -->',
-        '    <div class="section">',
-        '      <h2>Grid Level Visual Gallery</h2>',
-        '      <p>Clean map-only SVG grid representations across all computed levels:</p>',
-        '      <div class="gallery">'
-    ])
-
-    for l in model.levels:
-        lvl_fmt = f"{l.level:02d}"
-        res_str = f"{l.cols}x{l.rows}"
-        map_rel_path = f"../figures/{lvl_fmt}_{res_str}_map.svg"
-        lines.append(
-            f'        <div class="gallery-card">'
-            f'<img src="{map_rel_path}" alt="Level {lvl_fmt} Map" loading="lazy">'
-            f'<p class="gc-label">Level {lvl_fmt} ({res_str})</p>'
-            f'<p class="gc-sub">Filled: {l.filled_cells:,} / {l.total_cells:,} ({l.occupancy_percent:.1f}%)</p>'
-            f'</div>'
+    # ── Gallery cards ────────────────────────────────────────────────────────
+    gallery_rows = []
+    for lv in model.levels:
+        lf = f"{lv.level:02d}"
+        rs = f"{lv.cols}x{lv.rows}"
+        mp = f"../figures/{lf}_{rs}_map.svg"
+        gallery_rows.append(
+            '      <div class="gallery-card" style="width:100%; max-width:180px; margin:0 auto; display:flex; flex-direction:column; justify-content:space-between;">'
+            + f'<div style="text-align:center;font-size:11px;font-weight:800;color:var(--text);margin-bottom:2px;">L{lf}</div>'
+            + f'<button type="button" class="gallery-visual" onclick="openSvgModal(\'{mp}\',\'{motif_h} &middot; L{lf}\')"><img src="{mp}" alt="L{lf}" loading="lazy" style="max-width:100%; max-height:100%; object-fit:contain;"></button>'
+            + f'<div style="text-align:center;font-size:9.5px;font-family:monospace;color:var(--muted);margin:4px 0 2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{rs} · Filled: {lv.filled_cells:,}/{lv.total_cells:,} ({lv.occupancy_percent:.1f}%)">{rs} &middot; Filled: {lv.filled_cells:,}/{lv.total_cells:,} ({lv.occupancy_percent:.1f}%)</div>'
+            + '<div class="card-actions" style="margin-top:auto; display:flex; gap:4px;">'
+            + f'<button class="btn btn-sm btn-soft" style="flex:1; padding:3px 6px; font-size:10.5px;" onclick="openSvgModal(\'{mp}\',\'{motif_h} &middot; L{lf}\')">Preview</button>'
+            + f'<a class="btn btn-sm" style="flex:1; padding:3px 6px; font-size:10.5px; text-align:center;" href="{mp}" target="_blank" rel="noopener">SVG</a>'
+            + "</div></div>"
         )
+    gallery_html = "\n".join(gallery_rows)
 
-    lines.extend([
-        '      </div>',
-        '    </div>',
-        '    <!-- 7. Data Outputs & Export Index -->',
-        '    <div class="section">',
-        '      <h2>Data Exports &amp; Interactive Viewer</h2>',
-        '      <p>Access structured computational outputs:</p>',
-        '      <table>',
-        '        <thead><tr><th>Output Category</th><th>File / Location</th><th>Description</th></tr></thead>',
-        '        <tbody>',
-        '          <tr><td>Interactive Table Viewer</td><td><a href="../tables/tables.html"><code>tables/tables.html</code></a></td><td>Single interactive viewer with dataset selector &amp; search</td></tr>',
-        '          <tr><td>Lean Excel Workbook</td><td><a href="../excel/workbook.xlsx"><code>excel/workbook.xlsx</code></a></td><td>Lean workbook with 2D spatial &amp; coordinate maps (23 Sheets)</td></tr>',
-        '          <tr><td>Per-Level XLSX Technical Tables</td><td><code>tables/*_cells.xlsx</code></td><td>Two-sheet per-level XLSX tables (2D spatial map + 13-column list)</td></tr>',
-        '          <tr><td>SHA-256 Manifest</td><td><a href="../manifest/manifest.json"><code>manifest/manifest.json</code></a></td><td>Checksum verification manifest</td></tr>',
-        '        </tbody>',
-        '      </table>',
-        '    </div>',
-        '    <!-- 8. Validation Summary -->',
-        '    <div class="section">',
-        '      <h2>Validation Summary</h2>',
-        '      <table>',
-        '        <thead><tr><th>Category</th><th>Check Description</th><th>Status</th></tr></thead>',
-        '        <tbody>',
-        '          <tr><td>HTML First Screen</td><td>Image-free title block &amp; KPI cards</td><td><span class="badge-pass">PASS</span></td></tr>',
-        '          <tr><td>HTML Image Paths</td><td>Clean POSIX relative paths, no escaped characters</td><td><span class="badge-pass">PASS</span></td></tr>',
-        '          <tr><td>PDF Report</td><td>Opens via PyMuPDF, page count > 0</td><td><span class="badge-pass">PASS</span></td></tr>',
-        '          <tr><td>Excel Structure</td><td>Lean workbook structure matching 16d_workbook.xlsx style</td><td><span class="badge-pass">PASS</span></td></tr>',
-        '          <tr><td>Table Viewer</td><td>Single interactive HTML viewer with dataset selector</td><td><span class="badge-pass">PASS</span></td></tr>',
-        '          <tr><td>XLSX Technical Tables</td><td>Two sheets per file: 2D Spatial Map + 13-column list</td><td><span class="badge-pass">PASS</span></td></tr>',
-        '          <tr><td>ASCII Alignment</td><td>100% vertically aligned columns, fixed-width row labels</td><td><span class="badge-pass">PASS</span></td></tr>',
-        '        </tbody>',
-        '      </table>',
-        '    </div>',
-        '    <!-- 9. Reproducibility Notes -->',
-        '    <div class="section">',
-        '      <h2>Reproducibility Notes</h2>',
-        '      <p>The box-counting fractal dimension Db is estimated via linear regression of log N(r) against log(1/r). Dynamic sheet counts and file counts are computed directly from the generated package.</p>',
-        '    </div>',
-        '    <!-- 10. Footer -->',
-        f'    <div class="footer"><p>Generated by RASH-HIT Fractal Studio v1.0 &mdash; {model.generated_at} &mdash; Engine: {esc_html(model.analysis_engine)}</p></div>',
-        '  </div>',
-        '</body>',
-        '</html>'
-    ])
+    # ── Grid Figures rows (Output Files table) ───────────────────────────────
+    fig_chips = []
+    for lv in model.levels:
+        lf = f"{lv.level:02d}"
+        rs = f"{lv.cols}x{lv.rows}"
+        fig_chips.append(
+            f'          <tr><td>🖼️ <a href="../figures/{lf}_{rs}_map.svg" target="_blank" rel="noopener">{lf}_{rs}_map.svg</a></td><td>SVG</td></tr>'
+        )
+    fig_chips_html = "\n".join(fig_chips)
 
-    html_path.write_text("\n".join(lines), encoding="utf-8")
+    # ── Cell Table rows (Output Files table) ─────────────────────────────────
+    cell_chips = []
+    for lv in model.levels:
+        lf = f"{lv.level:02d}"
+        rs = f"{lv.cols}x{lv.rows}"
+        cell_chips.append(
+            f'          <tr><td>📊 <a href="../tables/{lf}_{rs}_cells.xlsx" target="_blank" rel="noopener">{lf}_{rs}_cells.xlsx</a></td><td>XLSX</td></tr>'
+        )
+    cell_chips_html = "\n".join(cell_chips)
+
+    # Resolve package_id
+    package_id = out_dir_report.parent.name
+
+    # Determine availability of files from profile flags
+    has_pdf_report = profile.generate_pdf_report if profile else True
+    has_tables_html = profile.generate_tables_html if profile else False
+    has_tables_json = (profile.generate_levels_json or profile.generate_summary_json) if profile else False
+    has_workbook = profile.generate_workbook if profile else True
+    has_manifest = profile.generate_manifest if profile else True
+    has_terminal_log = profile.generate_terminal_log if profile else False
+
+    # If the corresponding output files aren't generated under the current profile, clear their HTML lists
+    if profile and not (profile.generate_map_svgs or profile.generate_map_svgs_legacy):
+        fig_chips_html = ""
+    if profile and not profile.generate_xlsx_tables:
+        cell_chips_html = ""
+
+    html = build_academic_report_html(
+        report_file_path=html_path,
+        output_root=out_dir_report.parent.parent,
+        model=model,
+        motif_h=motif_h,
+        src_name=src_name,
+        package_id=package_id,
+        total_levels=total_levels,
+        max_level=max_level,
+        level_table_rows=level_table_rows,
+        gallery_html=gallery_html,
+        fig_chips_html=fig_chips_html,
+        cell_chips_html=cell_chips_html,
+        embedded_manifest_json="[]",
+        has_pdf_report=has_pdf_report,
+        has_tables_html=has_tables_html,
+        has_tables_json=has_tables_json,
+        has_workbook=has_workbook,
+        has_manifest=has_manifest,
+        has_terminal_log=has_terminal_log
+    )
+
+    html_path.write_text(html, encoding="utf-8")
     return html_path
+
+
 
 def generate_markdown_report(model: AnalysisReportModel, out_dir_report: Path) -> Path:
     """Generates GFM Markdown report (report/report.md) with pipe tables only."""
@@ -1595,6 +1526,35 @@ def generate_terminal_log(model: AnalysisReportModel, out_dir_term: Path) -> Pat
     term_txt_path.write_text("\n".join(txt_lines), encoding="utf-8")
     return term_txt_path
 
+
+def make_unique_package_dir(
+    output_root: Path,
+    safe_stem: str,
+    generated_at: Optional[str] = None,
+) -> Path:
+    output_root = Path(output_root)
+    safe = sanitize_output_slug(safe_stem) or 'motif'
+
+    plain = output_root / safe
+    if not plain.exists():
+        return plain
+
+    ts = ''
+    if generated_at:
+        m = re.match(r'(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})', str(generated_at))
+        if m:
+            ts = f'{m.group(1)}{m.group(2)}{m.group(3)}_{m.group(4)}{m.group(5)}{m.group(6)}'
+    if not ts:
+        ts = time.strftime('%Y%m%d_%H%M%S')
+
+    candidate = output_root / f'{safe}_{ts}'
+    suffix = 1
+    while candidate.exists():
+        candidate = output_root / f'{safe}_{ts}_{suffix:03d}'
+        suffix += 1
+    return candidate
+
+
 def export_academic_package_v3(
     model: AnalysisReportModel,
     output_root: Path,
@@ -1602,20 +1562,23 @@ def export_academic_package_v3(
     generate_raw_csv: bool = False,
     profile: Optional[Union[OutputProfile, str]] = None,
     skipped_outputs: Optional[List[Dict[str, Any]]] = None,
-    measure_mode: str = 'area'
+    measure_mode: str = 'area',
+    overwrite: bool = False,
 ) -> Path:
     if profile is None:
         profile = load_output_profile("lean")
     elif isinstance(profile, str):
         profile = load_output_profile(profile)
 
-    safe_stem = model.safe_name
-    out_dir = output_root / safe_stem
-
-    # Wipe existing output directory completely
-    if out_dir.exists():
-        shutil.rmtree(out_dir, ignore_errors=True)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    safe_stem = sanitize_output_slug(model.safe_name) or 'motif'
+    if overwrite:
+        out_dir = output_root / safe_stem
+        if out_dir.exists():
+            shutil.rmtree(out_dir, ignore_errors=True)
+        out_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir = make_unique_package_dir(output_root, safe_stem, model.generated_at)
+        out_dir.mkdir(parents=True, exist_ok=True)
 
     out_dir_fig = out_dir / "figures"
     out_dir_tables = out_dir / "tables"
@@ -1668,7 +1631,7 @@ def export_academic_package_v3(
 
     # 6. Reports
     if profile.generate_html_report:
-        generate_academic_html_report(model, out_dir_report)
+        generate_academic_html_report(model, out_dir_report, profile=profile)
     if profile.generate_markdown_report:
         generate_markdown_report(model, out_dir_report)
     if profile.generate_pdf_report:

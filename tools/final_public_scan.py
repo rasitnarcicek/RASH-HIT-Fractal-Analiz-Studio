@@ -54,7 +54,8 @@ def main():
 
     ignore_dirs = [
         ".git", ".venv", "venv", "__pycache__", "outputs", "output_reports",
-        ".gemini", ".antigravity", "scratch", "docs/internal/experiments", "docs/internal/gpu_experiments"
+        ".gemini", ".antigravity", "scratch", "docs",
+        "node_modules"
     ]
     ignore_files = [
         "PROJE_MIMARI_VE_KOD_HARITASI.md", "RASH_HIT_FRACTAL_STUDIO_MASTER_HARITA.md",

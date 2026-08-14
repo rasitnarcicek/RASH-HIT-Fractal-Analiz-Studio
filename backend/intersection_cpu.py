@@ -60,7 +60,8 @@ class CPULevelResult:
         empty_count: int,
         execution_time_ms: float,
         filled_cells_indices: List[Tuple[int, int]] = None,
-        debug_cells: List[CellDebugInfo] = None
+        debug_cells: List[CellDebugInfo] = None,
+        row_runs: List[Tuple[int, int, int]] = None
     ):
         self.level = level
         self.filled_count = filled_count
@@ -70,6 +71,9 @@ class CPULevelResult:
         self.execution_time_ms = execution_time_ms
         self.filled_cells_indices = filled_cells_indices or []
         self.debug_cells = debug_cells or []
+        # RASH-HIT Fractal Engine: compact per-row filled runs ``(row, col_start, col_end_exclusive)``
+        # used for run-length/row-run merged SVG maps when raw indices are disabled.
+        self.row_runs = row_runs or []
 
     def to_dict(self) -> Dict[str, Any]:
         d = self.level.to_dict()

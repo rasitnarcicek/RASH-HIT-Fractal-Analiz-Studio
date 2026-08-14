@@ -1,4 +1,4 @@
-# requirements.lock — Manually curated locked environment for RASH-HIT Fractal Studio v1.0.3
+# requirements.lock — Manually curated locked environment for RASH-HIT Fractal Studio v1.0.6
 # Generated: 2026-07-30
 # Python: 3.11.x
 # OS: Windows
@@ -9,7 +9,6 @@ numpy==2.4.6
 shapely==2.1.2
 openpyxl==3.1.5
 PyMuPDF==1.28.0
-PyYAML==6.0.3
 Pillow==12.2.0
 tinycss2==1.1.0
 defusedxml==0.7.1

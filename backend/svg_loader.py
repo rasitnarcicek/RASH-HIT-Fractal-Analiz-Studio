@@ -10,6 +10,7 @@ Detects advanced features (clipPath, mask, fill-rule) and records warnings for r
 
 from __future__ import annotations
 import re
+from pathlib import Path
 # Use defusedxml for safe XML parsing; fall back to stdlib with a warning.
 try:
     import defusedxml.ElementTree as ET  # type: ignore[import]
@@ -287,3 +288,34 @@ class SVGLoader:
         # Recurse into children (e.g. <g> groups)
         for child in elem:
             self._traverse_node(child, effective_styles, current_transform_stack, results)
+
+
+def load_svg_geometries(filepath: str | Path):
+    """Convenience helper to load an SVG file and extract all transformed ParsedGeometry items."""
+    from backend.geometry_engine import extract_node_geometries
+    loader = SVGLoader(str(filepath))
+    elements = loader.get_elements()
+    geoms = []
+    for node, transform_stack in elements:
+        parsed_list = extract_node_geometries(node, transform_stack)
+        geoms.extend(parsed_list)
+
+    vw = loader.viewbox[2] if loader.viewbox else (loader.width or 100.0)
+    vh = loader.viewbox[3] if loader.viewbox else (loader.height or 100.0)
+    return geoms, vw, vh
+
+
+def parse_svg_content(content_str: str):
+    """Convenience helper to parse inline SVG XML string content into ParsedGeometry items."""
+    import tempfile, os
+    with tempfile.NamedTemporaryFile("w", suffix=".svg", delete=False, encoding="utf-8") as tmp:
+        tmp.write(content_str)
+        tmp_path = tmp.name
+    try:
+        geoms, _, _ = load_svg_geometries(tmp_path)
+        return geoms
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
