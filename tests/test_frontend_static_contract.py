@@ -454,11 +454,21 @@ class TestOutputsPureData(unittest.TestCase):
             self.assertEqual(offenders, [], f"outputs/ root must be pure data: {offenders}")
 
     def test_package_index_exists_and_is_valid(self):
-        idx = ROOT / "outputs" / "package_index.json"
-        self.assertTrue(idx.is_file(), "outputs/package_index.json missing")
         import json
-        data = json.loads(idx.read_text(encoding="utf-8"))
-        self.assertIsInstance(data, list)
+        import tempfile
+        # Build the fixture itself (no dependency on another test's side effect).
+        # Use a throwaway isolated root so the real outputs/ is never touched.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_root = Path(tmp)
+            pkg_dir = tmp_root / "16A"
+            pkg_dir.mkdir(parents=True, exist_ok=True)
+            (pkg_dir / "result.json").write_text(
+                json.dumps({"package_id": "16A", "motif": "test"}), encoding="utf-8")
+            from backend.package_index import update_package_index
+            idx = update_package_index(tmp_root)
+            self.assertTrue(idx.is_file(), "package_index.json not produced by update_package_index")
+            data = json.loads(idx.read_text(encoding="utf-8"))
+            self.assertIsInstance(data, list)
 
 if __name__ == "__main__":
     unittest.main()

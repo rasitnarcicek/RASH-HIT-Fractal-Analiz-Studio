@@ -43,6 +43,15 @@ uploads/*
 diagnostics/
 wheels/
 
+# Generated benchmark output (real measurements, machine-specific)
+benchmarks/stage3_cpu_baseline.json
+
+# Scratch / sandbox artifacts (never source-controlled)
+nul
+_sandbox_write_test.txt
+tests/_file_test.txt
+.venv.broken-*/
+
 # Temporary build & patch scripts
 patch_*.py
 fix_*.py

@@ -18,6 +18,7 @@ from backend.confidence import evaluate_confidence, generate_motif_profile
 from backend.output_profiles import load_output_profile
 from backend.regression import compute_loglog_regression, generate_loglog_plot_svg
 from backend.svg_health import inspect_svg_health
+from backend.profile import sha256_of_file
 
 
 @dataclass
@@ -73,6 +74,7 @@ class ExecutionResult:
     confidence_details: Dict[str, Any] = field(default_factory=dict)
     motif_profile: Dict[str, Any] = field(default_factory=dict)
     steps: List[StepProgress] = field(default_factory=list)
+    level_grid: List[Dict[str, Any]] = field(default_factory=list)
     output_files: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
@@ -98,6 +100,7 @@ class ExecutionResult:
             "analysis_profile_version": self.analysis_profile_version,
             "svg_health": self.svg_health,
             "scale_table": self.scale_table,
+            "level_grid": self.level_grid,
             "fractal_dimension": round(self.fractal_dimension, 4),
             "r_squared": round(self.r_squared, 4),
             "confidence_score": round(self.confidence_score, 1),
@@ -149,6 +152,8 @@ class AnalysisProcessor:
         overwrite: bool = False,
         progress_callback: Optional[Callable[[StepProgress], None]] = None,
         profile: Optional[str] = "lean",
+        enable_profiling: bool = False,
+        export_artifacts: bool = True,
     ):
         self.input_path = Path(input_path).resolve()
         self.mode = mode.lower() if mode else "balanced"
@@ -159,6 +164,8 @@ class AnalysisProcessor:
         self.overwrite = bool(overwrite)
         self.progress_callback = progress_callback
         self.profile = profile or "lean"
+        self.enable_profiling = bool(enable_profiling)
+        self.export_artifacts = bool(export_artifacts)
 
         if output_dir:
             self.output_root = Path(output_dir).resolve()
@@ -223,6 +230,11 @@ class AnalysisProcessor:
         if progress_callback is not None:
             self.progress_callback = progress_callback
         self._level_callback = level_callback
+
+        from backend.profile import PipelineProfiler
+        prof = PipelineProfiler(enabled=self.enable_profiling)
+        prof.start()
+
         start_time_all = time.time()
         start_iso = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -240,6 +252,7 @@ class AnalysisProcessor:
         # ---------------------------------------------------------------------
         # STEP 1: Input Validation & Security
         # ---------------------------------------------------------------------
+        prof.begin_phase("step_1_input_validation")
         self._update_step(1, "RUNNING", message="Validating input file path and permissions...")
         if not self.input_path.exists():
             err_msg = f"Error: Input file not found -> '{self.input_path}'"
@@ -247,6 +260,7 @@ class AnalysisProcessor:
             self._update_step(1, "ERROR", error_message=err_msg)
             res.finished_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             res.duration_seconds = time.time() - start_time_all
+            prof.finish()
             return res
 
         if self.input_path.suffix.lower() != ".svg":
@@ -255,13 +269,16 @@ class AnalysisProcessor:
             self._update_step(1, "ERROR", error_message=err_msg)
             res.finished_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             res.duration_seconds = time.time() - start_time_all
+            prof.finish()
             return res
 
         self._update_step(1, "SUCCESS", message=f"Input file validated: {self.input_path.name}")
+        prof.end_phase("step_1_input_validation")
 
         # ---------------------------------------------------------------------
         # STEP 2: SVG Health & Structure Inspection
         # ---------------------------------------------------------------------
+        prof.begin_phase("step_2_svg_health")
         self._update_step(2, "RUNNING", message="Inspecting SVG health, viewBox, shape elements, and transforms...")
         health_res = inspect_svg_health(self.input_path)
         res.svg_health = health_res.to_dict()
@@ -273,6 +290,7 @@ class AnalysisProcessor:
             self._update_step(2, "ERROR", error_message=err_msg)
             res.finished_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             res.duration_seconds = time.time() - start_time_all
+            prof.finish()
             return res
 
         self._update_step(
@@ -280,10 +298,12 @@ class AnalysisProcessor:
             "SUCCESS",
             message=f"SVG Health Score: {health_res.suitability_score}/100 ({health_res.suitability}) - {health_res.total_shape_elements} shapes.",
         )
+        prof.end_phase("step_2_svg_health")
 
         # ---------------------------------------------------------------------
         # STEP 3: Vector Geometry Parsing & Normalization
         # ---------------------------------------------------------------------
+        prof.begin_phase("step_3_geometry_parsing")
         self._update_step(3, "RUNNING", message="Parsing vector paths, polygon geometries, and viewbox bounds...")
         from backend.svg_loader import load_svg_geometries
 
@@ -295,22 +315,27 @@ class AnalysisProcessor:
             self._update_step(3, "ERROR", error_message=err_msg)
             res.finished_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             res.duration_seconds = time.time() - start_time_all
+            prof.finish()
             return res
 
         self._update_step(3, "SUCCESS", message=f"Loaded {len(geoms)} vector geometries (ViewBox: {vw:.2f} x {vh:.2f}).")
+        prof.end_phase("step_3_geometry_parsing")
 
         # ---------------------------------------------------------------------
         # STEP 4: Level Settings & Doubling Grid Setup
         # ---------------------------------------------------------------------
+        prof.begin_phase("step_4_grid_setup")
         self._update_step(4, "RUNNING", message=f"Setting up doubling grid hierarchy for L01..L{self.requested_levels:02d}...")
         from backend.grid_planner import generate_doubling_grid_spec
 
         grid_specs = generate_doubling_grid_spec(vw, vh, levels=self.requested_levels)
         self._update_step(4, "SUCCESS", message=f"Generated {len(grid_specs)} grid levels (4x8 up to {grid_specs[-1][0]}x{grid_specs[-1][1]}).")
+        prof.end_phase("step_4_grid_setup")
 
         # ---------------------------------------------------------------------
         # STEP 5: Hierarchical Box-Counting Computation
         # ---------------------------------------------------------------------
+        prof.begin_phase("step_5_box_counting")
         self._update_step(5, "RUNNING", message="Computing vector-grid intersections across doubling grid levels...")
         from backend.intersection_hierarchical import compute_hierarchical_box_counting
 
@@ -329,28 +354,38 @@ class AnalysisProcessor:
             progress_callback=_per_level if self._level_callback is not None else None,
         )
         total_comp_ms = (time.time() - start_comp) * 1000.0
+        prof.end_phase("step_5_box_counting")
 
         levels_data_raw = []
-        for lm in lvl_report_models:
+        for idx, lm in enumerate(lvl_report_models):
+            cols, rows = grid_specs[idx] if idx < len(grid_specs) else (0, 0)
+            total = lm.total_cells
+            occ = lm.filled_cells
+            emp = lm.empty_cells
+            occ_pct = (occ / total * 100.0) if total > 0 else 0.0
             levels_data_raw.append({
-                "level": lm.level,
+                "level": int(lm.level),
                 "grid_label": lm.grid_label,
+                "rows": rows,
+                "columns": cols,
                 "cell_w": lm.cell_w,
                 "cell_h": lm.cell_h,
-                "filled_cells": lm.filled_cells,
-                "empty_cells": lm.empty_cells,
-                "total_cells": lm.total_cells,
-                "occupancy_percent": lm.occupancy_percent,
+                "filled_cells": occ,
+                "empty_cells": emp,
+                "total_cells": total,
+                "occupancy_percent": occ_pct,
                 "execution_time_ms": lm.execution_time_ms,
                 "mode": lm.mode,
             })
 
         res.computed_levels_count = len(levels_data_raw)
+        res.level_grid = levels_data_raw
         self._update_step(5, "SUCCESS", message=f"Box-counting completed for {len(levels_data_raw)} levels in {total_comp_ms:.2f} ms.")
 
         # ---------------------------------------------------------------------
         # STEP 6: Log-Log Regression & Confidence Evaluation
         # ---------------------------------------------------------------------
+        prof.begin_phase("step_6_regression")
         self._update_step(6, "RUNNING", message="Calculating log-log linear regression slope (Db), R2, and scientific confidence...")
         reg_res = compute_loglog_regression(levels_data_raw)
         res.fractal_dimension = reg_res.db
@@ -384,39 +419,51 @@ class AnalysisProcessor:
             "SUCCESS",
             message=f"Db = {reg_res.db:.4f}, R2 = {reg_res.r2:.4f}, Confidence: {conf_eval.label} ({conf_eval.score:.1f}/100)",
         )
+        prof.end_phase("step_6_regression")
 
         # ---------------------------------------------------------------------
         # STEP 7: Package Export & Artifact Generation
         # ---------------------------------------------------------------------
+        prof.begin_phase("step_7_export")
         self._update_step(7, "RUNNING", message="Exporting HTML/PDF report, XLSX tables, loglog plot, and manifest...")
-        from backend.academic_exporter import AnalysisReportModel, export_academic_package_v3
 
-        report_model = AnalysisReportModel(
-            motif=motif_name,
-            safe_name=motif_name.replace(" ", "_"),
-            generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            source_file=str(self.input_path),
-            viewbox_width=vw,
-            viewbox_height=vh,
-            aspect_ratio=vw / vh if vh > 0 else 1.0,
-            vector_geometry_count=len(geoms),
-            analysis_engine="CPU Exact Vector Geometry Engine",
-            db=reg_res.db,
-            r2=reg_res.r2,
-            total_time_ms=total_comp_ms,
-            levels=lvl_report_models,
-        )
+        # Default package location (used by both paths).
+        safe_name = motif_name.replace(" ", "_")
+        output_pkg_dir = self.output_root / safe_name
 
-        profile_obj = load_output_profile(self.profile)
-        output_pkg_dir = export_academic_package_v3(
-            report_model, self.output_root, profile=profile_obj, overwrite=self.overwrite,
-        )
+        if self.export_artifacts:
+            from backend.academic_exporter import AnalysisReportModel, export_academic_package_v3
 
-        # Generate Log-Log SVG Plot
-        loglog_plot_path = output_pkg_dir / "report" / "loglog_plot.svg"
-        generate_loglog_plot_svg(reg_res, loglog_plot_path)
+            report_model = AnalysisReportModel(
+                motif=motif_name,
+                safe_name=safe_name,
+                generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                source_file=str(self.input_path),
+                viewbox_width=vw,
+                viewbox_height=vh,
+                aspect_ratio=vw / vh if vh > 0 else 1.0,
+                vector_geometry_count=len(geoms),
+                analysis_engine="CPU Exact Vector Geometry Engine",
+                db=reg_res.db,
+                r2=reg_res.r2,
+                total_time_ms=total_comp_ms,
+                levels=lvl_report_models,
+            )
 
-        # Write Machine-Readable result.json
+            profile_obj = load_output_profile(self.profile)
+            output_pkg_dir = export_academic_package_v3(
+                report_model, self.output_root, profile=profile_obj, overwrite=self.overwrite,
+            )
+
+            # Generate Log-Log SVG Plot
+            loglog_plot_path = output_pkg_dir / "report" / "loglog_plot.svg"
+            generate_loglog_plot_svg(reg_res, loglog_plot_path)
+        else:
+            # Lightweight path (reference generation / benchmarking): keep the
+            # machine-readable result.json only, skip heavy PDF/XLSX/plot.
+            output_pkg_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write Machine-Readable result.json (always; required downstream).
         res.status = "SUCCESS"
         res.finished_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         res.duration_seconds = time.time() - start_time_all
@@ -435,11 +482,29 @@ class AnalysisProcessor:
 
         self._update_step(7, "SUCCESS", message=f"Package generated at: {output_pkg_dir}", output_files=out_files)
 
-        # Update machine-readable package index (package_index.json)
-        try:
-            from backend.package_index import update_package_index
-            update_package_index(self.output_root)
-        except Exception:
-            pass
+        # Update machine-readable package index (package_index.json) only when
+        # we actually produced a full package (lightweight runs skip it).
+        if self.export_artifacts:
+            try:
+                from backend.package_index import update_package_index
+                update_package_index(self.output_root)
+            except Exception:
+                pass
+        prof.end_phase("step_7_export")
+        prof.finish()
+
+        # Expose profiling payload on the result (non-scientific metadata only).
+        if prof.enabled:
+            res.profiling = {
+                "input_sha256": sha256_of_file(self.input_path),
+                "engine": "cpu",
+                "levels": [lv["level"] for lv in levels_data_raw],
+                "timings_seconds": prof.to_dict(),
+            }
+            # Best-effort JSON sidecar (never fails the analysis).
+            try:
+                prof.write_json(output_pkg_dir / "cpu_profile.json")
+            except Exception:
+                pass
 
         return res

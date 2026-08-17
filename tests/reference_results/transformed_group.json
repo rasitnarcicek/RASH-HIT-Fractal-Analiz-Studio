@@ -1,0 +1,109 @@
+{
+  "schema_version": "rashhit.cpu.reference/v1",
+  "application_version": "1.0.0",
+  "fixture_name": "transformed_group.svg",
+  "input_sha256": "825086f8fc3db0e045d77ca93da52cf49af19c3e347ab3892b5ee678ec12e3de",
+  "engine": "cpu",
+  "levels": 10,
+  "per_level": {
+    "1": {
+      "grid_label": "4x4",
+      "rows": 4,
+      "columns": 0,
+      "total_cells": 16,
+      "occupied_cells": 8,
+      "empty_cells": 8,
+      "occupancy_ratio": 0.5
+    },
+    "2": {
+      "grid_label": "8x8",
+      "rows": 8,
+      "columns": 0,
+      "total_cells": 64,
+      "occupied_cells": 15,
+      "empty_cells": 49,
+      "occupancy_ratio": 0.234375
+    },
+    "3": {
+      "grid_label": "16x16",
+      "rows": 16,
+      "columns": 0,
+      "total_cells": 256,
+      "occupied_cells": 43,
+      "empty_cells": 213,
+      "occupancy_ratio": 0.167969
+    },
+    "4": {
+      "grid_label": "32x32",
+      "rows": 32,
+      "columns": 0,
+      "total_cells": 1024,
+      "occupied_cells": 140,
+      "empty_cells": 884,
+      "occupancy_ratio": 0.136719
+    },
+    "5": {
+      "grid_label": "64x64",
+      "rows": 64,
+      "columns": 0,
+      "total_cells": 4096,
+      "occupied_cells": 514,
+      "empty_cells": 3582,
+      "occupancy_ratio": 0.125488
+    },
+    "6": {
+      "grid_label": "128x128",
+      "rows": 128,
+      "columns": 0,
+      "total_cells": 16384,
+      "occupied_cells": 1958,
+      "empty_cells": 14426,
+      "occupancy_ratio": 0.119507
+    },
+    "7": {
+      "grid_label": "256x256",
+      "rows": 256,
+      "columns": 0,
+      "total_cells": 65536,
+      "occupied_cells": 7647,
+      "empty_cells": 57889,
+      "occupancy_ratio": 0.116684
+    },
+    "8": {
+      "grid_label": "512x512",
+      "rows": 512,
+      "columns": 0,
+      "total_cells": 262144,
+      "occupied_cells": 30212,
+      "empty_cells": 231932,
+      "occupancy_ratio": 0.11525
+    },
+    "9": {
+      "grid_label": "1024x1024",
+      "rows": 1024,
+      "columns": 0,
+      "total_cells": 1048576,
+      "occupied_cells": 120107,
+      "empty_cells": 928469,
+      "occupancy_ratio": 0.114543
+    },
+    "10": {
+      "grid_label": "2048x2048",
+      "rows": 2048,
+      "columns": 0,
+      "total_cells": 4194304,
+      "occupied_cells": 478940,
+      "empty_cells": 3715364,
+      "occupancy_ratio": 0.114188
+    }
+  },
+  "fractal_dimension": 1.989755,
+  "r_squared": 0.999998,
+  "dependency_versions": {
+    "numpy": "2.4.6",
+    "shapely": "2.1.2",
+    "taichi": "1.7.4"
+  },
+  "generated_at": "2026-08-14T01:32:26.980154+00:00",
+  "python": "3.11.9 AMD64"
+}

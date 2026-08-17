@@ -60,9 +60,9 @@ def test_svg_health_inspection_broken(tmp_path):
     assert len(res.errors) > 0
 
 
-def test_invalid_file_path_handling():
+def test_invalid_file_path_handling(tmp_path):
     invalid_file = Path("input_svgs/non_existent_file.svg")
-    proc = AnalysisProcessor(input_path=invalid_file)
+    proc = AnalysisProcessor(input_path=invalid_file, output_dir=tmp_path)
     exec_res = proc.run()
     assert exec_res.status == "FAILED"
     assert len(exec_res.errors) > 0
