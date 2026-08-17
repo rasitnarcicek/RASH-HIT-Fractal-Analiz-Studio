@@ -765,13 +765,17 @@ def generate_excel_workbook(
             ws_s = wb["Summary"]
             ws_s["B5"].value = model.generated_at
             ws_s["B14"].value = f"{model.total_time_ms:.2f} ms"
+        template_saved = False
         for attempt in range(5):
             try:
                 wb.save(excel_path)
+                template_saved = True
                 break
             except PermissionError:
                 time.sleep(0.5)
         wb.close()
+        if not template_saved:
+            raise PermissionError(f"Could not save Excel workbook to {excel_path} after 5 attempts (file is locked or permission denied).")
         return excel_path
 
     wb = openpyxl.Workbook()
@@ -1435,10 +1439,10 @@ def generate_markdown_report(model: AnalysisReportModel, out_dir_report: Path) -
     return md_path
 
 def generate_pdf_report(model: AnalysisReportModel, out_dir_report: Path) -> Path:
-    import fitz
+    import pymupdf
     pdf_path = out_dir_report / "report.pdf"
 
-    doc = fitz.open()
+    doc = pymupdf.open()
     page1 = doc.new_page(width=595, height=842) # A4
 
     # Color Palette
@@ -1452,14 +1456,14 @@ def generate_pdf_report(model: AnalysisReportModel, out_dir_report: Path) -> Pat
     c_subtext = (0.576, 0.643, 0.722)  # #94A3B8 Subtitle text
 
     # 1. Executive Top Header Banner Block
-    page1.draw_rect(fitz.Rect(36, 36, 559, 92), fill=c_navy, color=None)
-    page1.insert_text(fitz.Point(50, 60), "RASH-HIT FRACTAL STUDIO v1.0", fontsize=15, fontname="helv", color=c_white)
-    page1.insert_text(fitz.Point(50, 78), f"Academic Computation & Occupancy Report  •  Motif: {esc_html(model.motif)}", fontsize=9.5, fontname="helv", color=(0.57, 0.77, 0.99))
+    page1.draw_rect(pymupdf.Rect(36, 36, 559, 92), fill=c_navy, color=None)
+    page1.insert_text(pymupdf.Point(50, 60), "RASH-HIT FRACTAL STUDIO v1.0", fontsize=15, fontname="helv", color=c_white)
+    page1.insert_text(pymupdf.Point(50, 78), f"Academic Computation & Occupancy Report  •  Motif: {esc_html(model.motif)}", fontsize=9.5, fontname="helv", color=(0.57, 0.77, 0.99))
     
     # Motif Badge Box
-    badge_rect = fitz.Rect(440, 50, 545, 76)
+    badge_rect = pymupdf.Rect(440, 50, 545, 76)
     page1.draw_rect(badge_rect, fill=c_blue, color=None)
-    page1.insert_text(fitz.Point(452, 66), "ACADEMIC", fontsize=8.5, fontname="helv", color=c_white)
+    page1.insert_text(pymupdf.Point(452, 66), "ACADEMIC", fontsize=8.5, fontname="helv", color=c_white)
 
     # 2. KPI Summary Cards (Row of 4 Card Containers)
     cards = [
@@ -1475,15 +1479,15 @@ def generate_pdf_report(model: AnalysisReportModel, out_dir_report: Path) -> Pat
     for idx, (title, val, val_color) in enumerate(cards):
         x0 = 36 + idx * (card_w + 10)
         x1 = x0 + card_w
-        rect = fitz.Rect(x0, y_card_top, x1, y_card_bottom)
+        rect = pymupdf.Rect(x0, y_card_top, x1, y_card_bottom)
         page1.draw_rect(rect, fill=c_light_bg, color=c_border, width=0.8)
-        page1.insert_text(fitz.Point(x0 + 8, y_card_top + 16), title, fontsize=7.0, fontname="helv", color=c_subtext)
-        page1.insert_text(fitz.Point(x0 + 8, y_card_top + 38), val, fontsize=12.0, fontname="helv", color=val_color)
+        page1.insert_text(pymupdf.Point(x0 + 8, y_card_top + 16), title, fontsize=7.0, fontname="helv", color=c_subtext)
+        page1.insert_text(pymupdf.Point(x0 + 8, y_card_top + 38), val, fontsize=12.0, fontname="helv", color=val_color)
 
     # 3. Section 1: Computational Metrics & Geometry Specifications Card
     y_sec1 = 166
-    page1.draw_rect(fitz.Rect(36, y_sec1, 559, y_sec1 + 20), fill=c_navy, color=None)
-    page1.insert_text(fitz.Point(46, y_sec1 + 14), "1. COMPUTATIONAL METRICS & GEOMETRY SPECIFICATIONS", fontsize=9.5, fontname="helv", color=c_white)
+    page1.draw_rect(pymupdf.Rect(36, y_sec1, 559, y_sec1 + 20), fill=c_navy, color=None)
+    page1.insert_text(pymupdf.Point(46, y_sec1 + 14), "1. COMPUTATIONAL METRICS & GEOMETRY SPECIFICATIONS", fontsize=9.5, fontname="helv", color=c_white)
 
     specs = [
         ("Source File Path", Path(model.source_file).name),
@@ -1498,44 +1502,44 @@ def generate_pdf_report(model: AnalysisReportModel, out_dir_report: Path) -> Pat
 
     y_spec = y_sec1 + 20
     spec_h = 16.5
-    page1.draw_rect(fitz.Rect(36, y_spec, 559, y_spec + len(specs) * spec_h), fill=None, color=c_border, width=0.8)
+    page1.draw_rect(pymupdf.Rect(36, y_spec, 559, y_spec + len(specs) * spec_h), fill=None, color=c_border, width=0.8)
 
     for idx, (label, val) in enumerate(specs):
         r_top = y_spec + idx * spec_h
         r_bot = r_top + spec_h
         row_bg = c_light_bg if idx % 2 == 1 else c_white
-        page1.draw_rect(fitz.Rect(36, r_top, 559, r_bot), fill=row_bg, color=None)
-        page1.draw_line(fitz.Point(36, r_bot), fitz.Point(559, r_bot), color=c_border, width=0.4)
-        page1.draw_line(fitz.Point(220, r_top), fitz.Point(220, r_bot), color=c_border, width=0.4)
+        page1.draw_rect(pymupdf.Rect(36, r_top, 559, r_bot), fill=row_bg, color=None)
+        page1.draw_line(pymupdf.Point(36, r_bot), pymupdf.Point(559, r_bot), color=c_border, width=0.4)
+        page1.draw_line(pymupdf.Point(220, r_top), pymupdf.Point(220, r_bot), color=c_border, width=0.4)
         
-        page1.insert_text(fitz.Point(44, r_top + 11.5), label, fontsize=8.5, fontname="helv", color=c_navy)
-        page1.insert_text(fitz.Point(228, r_top + 11.5), str(val), fontsize=8.5, fontname="helv", color=c_slate)
+        page1.insert_text(pymupdf.Point(44, r_top + 11.5), label, fontsize=8.5, fontname="helv", color=c_navy)
+        page1.insert_text(pymupdf.Point(228, r_top + 11.5), str(val), fontsize=8.5, fontname="helv", color=c_slate)
 
     # 4. Section 2: Grid Level Occupancy Breakdown Table
     y_sec2 = y_spec + len(specs) * spec_h + 14
-    page1.draw_rect(fitz.Rect(36, y_sec2, 559, y_sec2 + 20), fill=c_navy, color=None)
-    page1.insert_text(fitz.Point(46, y_sec2 + 14), "2. GRID LEVEL OCCUPANCY BREAKDOWN TABLE", fontsize=9.5, fontname="helv", color=c_white)
+    page1.draw_rect(pymupdf.Rect(36, y_sec2, 559, y_sec2 + 20), fill=c_navy, color=None)
+    page1.insert_text(pymupdf.Point(46, y_sec2 + 14), "2. GRID LEVEL OCCUPANCY BREAKDOWN TABLE", fontsize=9.5, fontname="helv", color=c_white)
 
     # Table Header
     y_tbl_hdr = y_sec2 + 20
-    page1.draw_rect(fitz.Rect(36, y_tbl_hdr, 559, y_tbl_hdr + 18), fill=(0.200, 0.254, 0.333), color=None)
+    page1.draw_rect(pymupdf.Rect(36, y_tbl_hdr, 559, y_tbl_hdr + 18), fill=(0.200, 0.254, 0.333), color=None)
     
     headers = ["LEVEL", "GRID", "TOTAL CELLS", "FILLED CELLS", "EMPTY CELLS", "OCCUPANCY %", "TIME (MS)"]
     col_x = [46, 96, 160, 240, 320, 400, 480]
 
     for idx, h in enumerate(headers):
-        page1.insert_text(fitz.Point(col_x[idx], y_tbl_hdr + 12.5), h, fontsize=7.5, fontname="helv", color=c_white)
+        page1.insert_text(pymupdf.Point(col_x[idx], y_tbl_hdr + 12.5), h, fontsize=7.5, fontname="helv", color=c_white)
 
     y_row = y_tbl_hdr + 18
     row_h = 16.5
-    page1.draw_rect(fitz.Rect(36, y_row, 559, y_row + len(model.levels) * row_h), fill=None, color=c_border, width=0.8)
+    page1.draw_rect(pymupdf.Rect(36, y_row, 559, y_row + len(model.levels) * row_h), fill=None, color=c_border, width=0.8)
 
     for idx, lvl in enumerate(model.levels):
         r_top = y_row + idx * row_h
         r_bot = r_top + row_h
         row_bg = c_light_bg if idx % 2 == 1 else c_white
-        page1.draw_rect(fitz.Rect(36, r_top, 559, r_bot), fill=row_bg, color=None)
-        page1.draw_line(fitz.Point(36, r_bot), fitz.Point(559, r_bot), color=c_border, width=0.4)
+        page1.draw_rect(pymupdf.Rect(36, r_top, 559, r_bot), fill=row_bg, color=None)
+        page1.draw_line(pymupdf.Point(36, r_bot), pymupdf.Point(559, r_bot), color=c_border, width=0.4)
 
         row_vals = [
             f"L{lvl.level:02d}",
@@ -1550,13 +1554,13 @@ def generate_pdf_report(model: AnalysisReportModel, out_dir_report: Path) -> Pat
         for c_i, val in enumerate(row_vals):
             fn = "helv"
             tc = c_blue if c_i == 3 else (c_green if c_i == 5 else c_slate)
-            page1.insert_text(fitz.Point(col_x[c_i], r_top + 11.5), val, fontsize=8.5, fontname=fn, color=tc)
+            page1.insert_text(pymupdf.Point(col_x[c_i], r_top + 11.5), val, fontsize=8.5, fontname=fn, color=tc)
 
     # 5. Bottom Footer Bar & Academic Metadata
-    page1.draw_line(fitz.Point(36, 796), fitz.Point(559, 796), color=c_navy, width=1.0)
-    page1.insert_text(fitz.Point(36, 810), f"RASH-HIT Fractal Studio v1.0  •  {model.generated_at}  •  Engine: {esc_html(model.analysis_engine)}", fontsize=7.5, fontname="helv", color=c_subtext)
-    page1.insert_text(fitz.Point(36, 822), "Author: Mehmet Raşit Narçiçek  •  ORCID: https://orcid.org/0009-0005-3423-255X  •  License: Apache-2.0", fontsize=7.5, fontname="helv", color=c_subtext)
-    page1.insert_text(fitz.Point(510, 810), "Page 1 of 1", fontsize=7.5, fontname="helv", color=c_navy)
+    page1.draw_line(pymupdf.Point(36, 796), pymupdf.Point(559, 796), color=c_navy, width=1.0)
+    page1.insert_text(pymupdf.Point(36, 810), f"RASH-HIT Fractal Studio v1.0  •  {model.generated_at}  •  Engine: {esc_html(model.analysis_engine)}", fontsize=7.5, fontname="helv", color=c_subtext)
+    page1.insert_text(pymupdf.Point(36, 822), "Author: Mehmet Raşit Narçiçek  •  ORCID: https://orcid.org/0009-0005-3423-255X  •  License: Apache-2.0", fontsize=7.5, fontname="helv", color=c_subtext)
+    page1.insert_text(pymupdf.Point(510, 810), "Page 1 of 1", fontsize=7.5, fontname="helv", color=c_navy)
 
     doc.save(str(pdf_path))
     doc.close()
