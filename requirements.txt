@@ -1,0 +1,4 @@
+numpy>=1.24.0
+shapely>=2.0.0
+defusedxml>=0.7.1
+tinycss2>=1.2.0

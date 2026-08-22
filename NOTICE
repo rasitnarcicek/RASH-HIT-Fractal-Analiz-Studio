@@ -1,0 +1,22 @@
+RASH-HIT Fractal Studio
+Copyright 2026 Mehmet Raşit Narçiçek
+ORCID: https://orcid.org/0009-0005-3423-255X
+
+This product includes software developed by Mehmet Raşit Narçiçek.
+
+RASH-HIT Fractal Studio is an academic computational software project
+for SVG-based vector geometry analysis, grid occupancy mapping,
+box-counting fractal dimension estimation, SVG Coordinate Map generation,
+and publication-ready research output generation.
+
+This software is licensed under the Apache License, Version 2.0.
+You may obtain a copy of the License at:
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+The project name "RASH-HIT Fractal Studio", associated documentation,
+figures, examples, and project branding may not be used to imply endorsement
+by the author without prior written permission.
+
+This NOTICE file is provided to preserve authorship, attribution, and
+project identity information.
