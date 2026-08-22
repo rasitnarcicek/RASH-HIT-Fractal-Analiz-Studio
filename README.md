@@ -1,6 +1,5 @@
 # RASH-HIT Fractal Studio CLI
 
-[![Python Application CI](https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio/actions/workflows/python-app.yml/badge.svg)](https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio/actions)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 
@@ -48,32 +47,28 @@ python run_analysis.py --input input_svgs/16D.svg --levels 7
 
 **Sample Terminal Output:**
 ```text
-=================================================================
- RASH-HIT Fractal Studio CLI - v1.0.0
- Vector Geometry Box-Counting & Fractal Dimension Engine
-=================================================================
-
-[+] Processing: 16D.svg
------------------------------------------------------------------
-  * ViewBox       : 100.00 x 200.00 (Aspect: 0.50)
-  * Geometries    : 2 vector elements (parsed in 0.68 ms)
-  * Grid Levels   : L01 .. L07
-  * Analysis Mode : Exact Vector Geometry (CPU Area)
------------------------------------------------------------------
-Level  Grid          Total Cells  Filled Cells  Empty Cells    Fill %   Time ms
------------------------------------------------------------------------------
-L01    4x8                    32            32            0   100.00%      0.20
-L02    8x16                  128           128            0   100.00%      0.19
-L03    16x32                 512           420           92    82.03%      0.54
-L04    32x64               2,048         1,508          540    73.63%      1.43
-L05    64x128              8,192         6,032        2,160    73.63%      5.48
-L06    128x256            32,768        24,128        8,640    73.63%     23.45
-L07    256x512           131,072        95,172       35,900    72.61%    103.61
------------------------------------------------------------------------------
-  >> Fractal Dimension (Db) : 1.9134
-  >> Goodness of Fit (R^2)   : 0.9994
-  >> Total Computation Time : 136.98 ms
-=================================================================
++------------------------------------------------------------------------------+
+|               RASH-HIT FRACTAL STUDIO - ANALYSIS REPORT                      |
++------------------------------------------------------------------------------+
+  Motif Loaded       : 16D (100.00 x 200.00)
+  Geometries         : 2 vector elements
+  Analysis Engine    : cpu
+  Selected Engine    : CPU Exact Vector Geometry Engine (Shapely/GEOS)
++------------------------------------------------------------------------------+
+| Level | Grid     | Total Cells | Filled Cells | Empty Cells | Occupancy % | Time ms  |
++-------+----------+-------------+--------------+-------------+-------------+----------+
+|  L01  | 4x8      |          32 |           32 |           0 |     100.00% |     0.21 |
+|  L02  | 8x16     |         128 |          128 |           0 |     100.00% |     0.17 |
+|  L03  | 16x32    |         512 |          420 |          92 |      82.03% |     0.48 |
+|  L04  | 32x64    |       2,048 |        1,508 |         540 |      73.63% |     1.39 |
+|  L05  | 64x128   |       8,192 |        6,032 |       2,160 |      73.63% |     5.28 |
+|  L06  | 128x256  |      32,768 |       24,128 |       8,640 |      73.63% |    23.12 |
+|  L07  | 256x512  |     131,072 |       95,172 |      35,900 |      72.61% |    99.55 |
++-------+----------+-------------+--------------+-------------+-------------+----------+
+  [RESULT] Box-Counting Fractal Dimension Db = 1.9134
+  [RESULT] Linear Regression Fit R2           = 0.9994
+  [RESULT] Total Execution Time               = 131.86 ms
++------------------------------------------------------------------------------+
 ```
 
 ### 2. Batch Processing a Directory
@@ -87,7 +82,6 @@ python run_analysis.py --dir input_svgs/ --levels 5
 | `--input <path>` | `-i` | `None` | Path to a single input SVG file |
 | `--dir <path>` | `-d` | `None` | Path to directory for batch processing |
 | `--levels <int>` | `-l` | `7` | Number of grid scaling levels |
-| `--quiet` | `-q` | `False` | Quiet mode (suppresses per-level steps) |
 | `--version` | `-v` | - | Displays application version |
 
 ---
