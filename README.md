@@ -5,7 +5,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/rash-hit-fractal-analiz-studio?color=blue)](https://pypi.org/project/rash-hit-fractal-analiz-studio/)
 [![npm version](https://img.shields.io/npm/v/rash-hit-fractal-analiz-studio?color=green)](https://www.npmjs.com/package/rash-hit-fractal-analiz-studio)
 [![Concept DOI](https://img.shields.io/badge/Concept_DOI-10.5281%2Fzenodo.22069152-blue.svg)](https://doi.org/10.5281/zenodo.22069152)
-[![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22069153-blue.svg)](https://doi.org/10.5281/zenodo.22069153)
+[![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22069839-blue.svg)](https://doi.org/10.5281/zenodo.22069839)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
 
 **RASH-HIT Fractal Analiz Studio** is a research-grade, zero-rasterization computational geometry engine engineered for **exact vector box-counting**, **spatial occupancy profiling (fill vs. empty void ratio)**, and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs, architectural drawings, textile patterns, and graphic compositions.
@@ -160,7 +160,7 @@ rash-hit-fractal --dir ./input_svgs --levels 5
 If you use **RASH-HIT Fractal Analiz Studio** in your research, thesis, journal articles, or architectural/textile studies, please cite the software using the persistent DOIs below:
 
 - **Concept DOI:** [10.5281/zenodo.22069152](https://doi.org/10.5281/zenodo.22069152)
-- **Version DOI (v1.0.0):** [10.5281/zenodo.22069153](https://doi.org/10.5281/zenodo.22069153)
+- **Version DOI (v1.0.1):** [10.5281/zenodo.22069839](https://doi.org/10.5281/zenodo.22069839)
 - **Author ORCID:** [0009-0005-3423-255X](https://orcid.org/0009-0005-3423-255X)
 
 ### BibTeX
@@ -169,17 +169,17 @@ If you use **RASH-HIT Fractal Analiz Studio** in your research, thesis, journal 
   author    = {Nar{\c{c}}i{\c{c}}ek, Mehmet Ra{\s}it},
   title     = {RASH-HIT Fractal Analiz Studio},
   year      = {2026},
-  version   = {1.0.0},
+  version   = {1.0.1},
   publisher = {GitHub},
-  doi       = {10.5281/zenodo.22069153},
-  url       = {https://doi.org/10.5281/zenodo.22069153},
+  doi       = {10.5281/zenodo.22069839},
+  url       = {https://doi.org/10.5281/zenodo.22069839},
   orcid     = {https://orcid.org/0009-0005-3423-255X},
   license   = {Apache-2.0}
 }
 ```
 
 ### APA
-> Narçiçek, M. R. (2026). *RASH-HIT Fractal Analiz Studio* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22069153
+> Narçiçek, M. R. (2026). *RASH-HIT Fractal Analiz Studio* (Version 1.0.1) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22069839
 
 ### RIS
 ```ris
@@ -187,10 +187,10 @@ TY  - COMP
 AU  - Narçiçek, Mehmet Raşit
 TI  - RASH-HIT Fractal Analiz Studio
 PY  - 2026
-ET  - 1.0.0
+ET  - 1.0.1
 PB  - GitHub
-DO  - 10.5281/zenodo.22069153
-UR  - https://doi.org/10.5281/zenodo.22069153
+DO  - 10.5281/zenodo.22069839
+UR  - https://doi.org/10.5281/zenodo.22069839
 ER  - 
 ```
 
