@@ -38,6 +38,13 @@ build_*.py
 *.bak
 scratch/
 
+# Build & Packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
 # Internal master architecture & benchmark files
 PROJE_MIMARI_VE_KOD_HARITASI.md
 PROJE_TUM_MIMARI_VE_KOD_HARITASI.md

@@ -45,17 +45,21 @@ Standard raster-based box-counting tools convert vector artworks into fixed pixe
 
 ---
 
-## 📦 Installation & Dependencies
+## 📦 Installation & Setup
 
-Ensure you have Python 3.9+ installed (Python 3.11 / 3.12 recommended).
+### Method 1: Install from PyPI (Recommended)
+```bash
+pip install rash-hit-fractal-studio
+```
 
+### Method 2: Install from Source
 ```bash
 # Clone the repository
 git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.git
 cd RASH-HIT-Fractal-Studio
 
-# Install lightweight dependencies
-pip install -r requirements.txt
+# Install in editable mode or install dependencies
+pip install -e .
 ```
 
 ### Core Dependency Stack
@@ -68,8 +72,12 @@ pip install -r requirements.txt
 
 ## 🚀 CLI Usage & Examples
 
+When installed via `pip`, the `rash-hit-fractal` command is available system-wide:
+
 ### 1. Analyze a Single SVG Motif
 ```bash
+rash-hit-fractal --input input_svgs/16D.svg --levels 7
+# or directly with python:
 python run_analysis.py --input input_svgs/16D.svg --levels 7
 ```
 
