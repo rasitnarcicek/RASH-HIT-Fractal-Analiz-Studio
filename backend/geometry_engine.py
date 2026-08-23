@@ -522,13 +522,17 @@ def extract_node_geometries(
             if len(polygons) == 1:
                 fill_obj = polygons[0]
             else:
+                polygons.sort(key=lambda p: p.area, reverse=True)
+                fill_obj = polygons[0]
                 if fill_rule == 'evenodd':
-                    polygons.sort(key=lambda p: p.area, reverse=True)
-                    fill_obj = polygons[0]
                     for p in polygons[1:]:
                         fill_obj = fill_obj.symmetric_difference(p)
-                else: # nonzero fill rule default
-                    fill_obj = unary_union(polygons)
+                else:  # nonzero fill rule: nested interior subpaths are treated as holes
+                    for p in polygons[1:]:
+                        if fill_obj.contains(p.representative_point()):
+                            fill_obj = fill_obj.difference(p)
+                        else:
+                            fill_obj = fill_obj.union(p)
             if fill_obj and not fill_obj.is_empty:
                 geoms.append(ParsedGeometry('fill', fill_obj, tag=tag))
 

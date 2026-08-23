@@ -33,8 +33,12 @@ class TestParseLength(unittest.TestCase):
         self.assertEqual(parse_length('.24px'), 0.24)
 
     def test_point_and_em_units(self):
-        self.assertAlmostEqual(parse_length('12pt'), 12 * 1.33333)
+        self.assertAlmostEqual(parse_length('12pt'), 12 * (96.0 / 72.0))
         self.assertAlmostEqual(parse_length('2em'), 32.0)
+        self.assertAlmostEqual(parse_length('1in'), 96.0)
+        self.assertAlmostEqual(parse_length('25.4mm'), 96.0)
+        self.assertAlmostEqual(parse_length('2.54cm'), 96.0)
+        self.assertAlmostEqual(parse_length('1pc'), 16.0)
 
     def test_invalid_values_return_default(self):
         self.assertEqual(parse_length('abc', default=3.0), 3.0)
@@ -54,7 +58,7 @@ class TestStyleParsing(unittest.TestCase):
         self.assertEqual(parse_style_attribute(''), {})
 
     def test_empty_css_block(self):
-        self.assertEqual(parse_css_style_block(''), {})
+        self.assertEqual(parse_css_style_block(''), {'classes': {}, 'tags': {}, 'ids': {}})
 
     def test_css_block_multiple_selectors_and_comments(self):
         rules = parse_css_style_block("""
@@ -62,13 +66,30 @@ class TestStyleParsing(unittest.TestCase):
             .cls-1 { fill: #1d1d1b; }
             .cls-2, .cls-3 { fill: none; }
             .cls-3 { stroke: #000; stroke-width: .24px; }
+            rect { fill: red; }
+            #star1 { fill: blue; }
         """)
-        self.assertEqual(rules['cls-1']['fill'], '#1d1d1b')
-        self.assertEqual(rules['cls-2']['fill'], 'none')
-        self.assertEqual(rules['cls-3'], {'fill': 'none', 'stroke': '#000', 'stroke-width': '.24px'})
+        self.assertEqual(rules['classes']['cls-1']['fill'], '#1d1d1b')
+        self.assertEqual(rules['classes']['cls-2']['fill'], 'none')
+        self.assertEqual(rules['classes']['cls-3'], {'fill': 'none', 'stroke': '#000', 'stroke-width': '.24px'})
+        self.assertEqual(rules['tags']['rect']['fill'], 'red')
+        self.assertEqual(rules['ids']['star1']['fill'], 'blue')
 
-    def test_non_class_selectors_are_ignored(self):
-        self.assertEqual(parse_css_style_block('rect { fill: red; }'), {})
+    def test_css_tag_and_id_selectors_applied_in_loader(self):
+        p = write_svg("""<svg viewBox="0 0 100 100">
+            <style>
+                rect { fill: #123456; }
+                #my-circle { fill: #654321; }
+            </style>
+            <rect width="10" height="10"/>
+            <circle id="my-circle" cx="20" cy="20" r="5"/>
+        </svg>""")
+        loader = SVGLoader(str(p))
+        elems = loader.get_elements()
+        self.assertEqual(len(elems), 2)
+        self.assertEqual(elems[0][0].fill, '#123456')
+        self.assertEqual(elems[1][0].fill, '#654321')
+        p.unlink(missing_ok=True)
 
 
 class TestSVGNode(unittest.TestCase):
@@ -109,6 +130,11 @@ class TestSVGNode(unittest.TestCase):
         self.assertFalse(SVGNode('path', {}, {'display': 'none'}, '').is_visible)
         self.assertFalse(SVGNode('path', {}, {'visibility': 'hidden'}, '').is_visible)
 
+    def test_invalid_opacity_does_not_crash(self):
+        n = SVGNode('path', {}, {'fill': 'black', 'opacity': 'inherit', 'fill-opacity': 'invalid'}, '')
+        self.assertEqual(n.opacity, 1.0)
+        self.assertEqual(n.effective_fill_alpha, 1.0)
+
 
 class TestSVGLoader(unittest.TestCase):
 
@@ -123,6 +149,20 @@ class TestSVGLoader(unittest.TestCase):
         path = write_svg(content)
         self._paths.append(path)
         return SVGLoader(str(path))
+
+    def test_use_element_instantiation(self):
+        loader = self.load('''<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs>
+                <rect id="motif1" width="10" height="10" fill="red"/>
+            </defs>
+            <use xlink:href="#motif1" x="20" y="30"/>
+        </svg>''')
+        elems = loader.get_elements()
+        self.assertEqual(len(elems), 1)
+        node, stack = elems[0]
+        self.assertEqual(node.tag, 'rect')
+        self.assertEqual(node.fill, 'red')
+        self.assertIn('translate(20.0, 30.0)', stack)
 
     def test_viewbox_metadata(self):
         loader = self.load('<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"></svg>')

@@ -3,15 +3,16 @@
 
 """
 RASH-HIT Fractal Analiz Studio
-Version: 1.0.0
+Version: 1.0.1
 """
 
 import argparse
+import concurrent.futures
 import os
 import sys
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any, Optional
 
 from backend.svg_loader import SVGLoader
 from backend.geometry_engine import extract_node_geometries, ParsedGeometry
@@ -20,18 +21,19 @@ from backend.intersection_cpu_area import analyze_grid_cpu_area
 from backend.fractal_analyzer import compute_fractal_dimension
 
 
-def process_single_file(input_file: str, levels: int = 7):
+def analyze_svg_data(input_file: str, levels: int = 7) -> Dict[str, Any]:
+    """
+    Executes exact vector geometry box-counting analysis on an SVG file in pure memory.
+    Returns structured results for zero-disk stdout reporting.
+    """
     if levels < 1:
-        print(f"Error: Invalid --levels '{levels}'. Number of grid levels must be >= 1.", file=sys.stderr)
-        sys.exit(1)
+        return {"input_file": input_file, "error": f"Invalid --levels '{levels}'. Number of grid levels must be >= 1."}
 
     input_path = Path(input_file)
     if not input_path.exists():
-        print(f"[ERROR] Input file not found: {input_file}", file=sys.stderr)
-        sys.exit(1)
+        return {"input_file": input_file, "error": f"Input file not found: {input_file}"}
 
-    # 1. Load SVG
-    t0_load = time.perf_counter()
+    # 1. Load SVG & extract geometries
     try:
         loader = SVGLoader(str(input_path))
         elements = loader.get_elements()
@@ -39,9 +41,7 @@ def process_single_file(input_file: str, levels: int = 7):
         for node, style in elements:
             geoms.extend(extract_node_geometries(node, style))
     except Exception as e:
-        print(f"[ERROR] Failed to load or parse SVG file '{input_file}': {e}", file=sys.stderr)
-        sys.exit(1)
-    t1_load = time.perf_counter()
+        return {"input_file": input_file, "error": f"Failed to load or parse SVG file '{input_file}': {e}"}
 
     vw, vh = loader.viewbox[2], loader.viewbox[3]
 
@@ -57,31 +57,65 @@ def process_single_file(input_file: str, levels: int = 7):
     # 4. Compute Fractal Dimension
     fractal_res = compute_fractal_dimension(results)
 
-    # 5. Output Box-Counting Terminal Report Table (Main Project Design)
-    motif_name = input_path.stem
+    level_rows = []
+    for r in results:
+        level_rows.append({
+            "level_idx": r.level.level_idx,
+            "grid": f"{r.level.cols}x{r.level.rows}",
+            "total_cells": r.level.total_cells,
+            "filled_count": r.filled_count,
+            "empty_count": r.empty_count,
+            "fill_ratio": r.fill_ratio,
+            "execution_time_ms": r.execution_time_ms,
+        })
+
+    return {
+        "input_file": input_file,
+        "motif_name": input_path.stem,
+        "vw": vw,
+        "vh": vh,
+        "geoms_count": len(geoms),
+        "calc_time_ms": calc_time_ms,
+        "levels": level_rows,
+        "fractal_db": fractal_res.fractal_dimension_db,
+        "r2_score": fractal_res.r2_score,
+        "error": None,
+    }
+
+
+def _batch_worker(args_tuple):
+    file_path, levels = args_tuple
+    return analyze_svg_data(file_path, levels=levels)
+
+
+def print_analysis_report(data: Dict[str, Any]):
+    """Outputs the official RASH-HIT Fractal Analiz Studio ASCII analysis table to stdout."""
+    if data.get("error"):
+        print(f"[ERROR] {data['error']}", file=sys.stderr)
+        return
+
     print("+------------------------------------------------------------------------------+")
     print("|               RASH-HIT FRACTAL ANALIZ STUDIO - ANALYSIS REPORT               |")
     print("+------------------------------------------------------------------------------+")
-    print(f"  Motif Loaded       : {motif_name} ({vw:.2f} x {vh:.2f})")
-    print(f"  Geometries         : {len(geoms):,} vector elements")
+    print(f"  Motif Loaded       : {data['motif_name']} ({data['vw']:.2f} x {data['vh']:.2f})")
+    print(f"  Geometries         : {data['geoms_count']:,} vector elements")
     print("  Analysis Engine    : cpu")
     print("  Selected Engine    : CPU Exact Vector Geometry Engine (Shapely/GEOS)")
     print("+------------------------------------------------------------------------------+")
     print("| Level | Grid     | Total Cells | Filled Cells | Empty Cells | Occupancy % | Time ms  |")
     print("+-------+----------+-------------+--------------+-------------+-------------+----------+")
 
-    for r in results:
-        grid_label = f"{r.level.cols}x{r.level.rows}"
+    for r in data["levels"]:
         print(
-            f"|  L{r.level.level_idx:02d}  | {grid_label:<8} | {r.level.total_cells:>11,} | "
-            f"{r.filled_count:>12,} | {r.empty_count:>11,} | {r.fill_ratio*100:>10.2f}% | "
-            f"{r.execution_time_ms:>8.2f} |"
+            f"|  L{r['level_idx']:02d}  | {r['grid']:<8} | {r['total_cells']:>11,} | "
+            f"{r['filled_count']:>12,} | {r['empty_count']:>11,} | {r['fill_ratio']*100:>10.2f}% | "
+            f"{r['execution_time_ms']:>8.2f} |"
         )
 
     print("+-------+----------+-------------+--------------+-------------+-------------+----------+")
-    print(f"  [RESULT] Box-Counting Fractal Dimension Db = {fractal_res.fractal_dimension_db:.4f}")
-    print(f"  [RESULT] Linear Regression Fit R2           = {fractal_res.r2_score:.4f}")
-    print(f"  [RESULT] Total Execution Time               = {calc_time_ms:.2f} ms")
+    print(f"  [RESULT] Box-Counting Fractal Dimension Db = {data['fractal_db']:.4f}")
+    print(f"  [RESULT] Linear Regression Fit R2           = {data['r2_score']:.4f}")
+    print(f"  [RESULT] Total Execution Time               = {data['calc_time_ms']:.2f} ms")
     print("+------------------------------------------------------------------------------+")
 
 
@@ -91,7 +125,8 @@ def main():
     _input_group.add_argument("-i", "--input", type=str, help="Input SVG file path")
     _input_group.add_argument("-d", "--dir", type=str, help="Directory path for batch processing all SVG files")
     parser.add_argument("-l", "--levels", type=int, default=7, help="Number of grid levels (default: 7)")
-    parser.add_argument("-v", "--version", action="version", version="RASH-HIT Fractal Analiz Studio v1.0.0")
+    parser.add_argument("-w", "--workers", type=int, default=None, help="Number of parallel worker processes for batch mode (default: auto)")
+    parser.add_argument("-v", "--version", action="version", version="RASH-HIT Fractal Analiz Studio v1.0.1")
 
     args = parser.parse_args()
 
@@ -106,7 +141,10 @@ def main():
 
     target_path = Path(target_input)
     if target_path.is_file():
-        process_single_file(str(target_path), levels=args.levels)
+        result = analyze_svg_data(str(target_path), levels=args.levels)
+        print_analysis_report(result)
+        if result.get("error"):
+            sys.exit(1)
     elif target_path.is_dir():
         svg_files = sorted(list(target_path.glob("*.svg")))
         if not svg_files:
@@ -116,9 +154,16 @@ def main():
         print("+------------------------------------------------------------------------------+")
         print(f"| BATCH PROCESSING MODE: {len(svg_files):<3} SVG Files Found                                   |")
         print("+------------------------------------------------------------------------------+")
-        for svg_file in svg_files:
-            process_single_file(str(svg_file), levels=args.levels)
-            print()
+
+        tasks = [(str(f), args.levels) for f in svg_files]
+        if len(svg_files) == 1:
+            res = analyze_svg_data(str(svg_files[0]), levels=args.levels)
+            print_analysis_report(res)
+        else:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=args.workers) as executor:
+                for res in executor.map(_batch_worker, tasks):
+                    print_analysis_report(res)
+                    print()
     else:
         print(f"[ERROR] Path not found: {target_input}", file=sys.stderr)
         sys.exit(1)

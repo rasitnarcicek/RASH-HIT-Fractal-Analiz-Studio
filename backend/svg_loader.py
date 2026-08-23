@@ -3,8 +3,8 @@
 
 """
 svg_loader.py — SVG Loader & CSS Style Resolver module.
-Parses SVG XML structure, resolves CSS style blocks (using tinycss2 with regex fallback), class definitions, inline styles,
-and presentation attributes according to SVG priority rules. Filters out hidden/invisible elements.
+Parses SVG XML structure, resolves CSS style blocks (tag, class, and ID selectors using tinycss2 with regex fallback),
+inline styles, presentation attributes, and <use> instances according to SVG priority rules. Filters out hidden/invisible elements.
 Detects advanced features (clipPath, mask, fill-rule) and records warnings for report outputs.
 """
 
@@ -21,7 +21,7 @@ except ImportError:  # pragma: no cover
         ImportWarning, stacklevel=2,
     )
     import xml.etree.ElementTree as ET  # type: ignore[assignment]
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Set, Any
 
 try:
     import tinycss2
@@ -30,51 +30,72 @@ except ImportError:
     HAS_TINYCSS2 = False
 
 
-def parse_css_style_block(style_content: str) -> Dict[str, Dict[str, str]]:
+def safe_float(val: Any, default: float = 0.0) -> float:
+    """Safely converts an arbitrary value to float with fallback on failure."""
+    if val is None:
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
+def parse_css_style_block(style_content: str) -> Dict[str, Dict[str, Dict[str, str]]]:
     """
-    Parses CSS <style> block content and extracts class rules.
+    Parses CSS <style> block content and extracts rules grouped by selector type:
+    - 'classes': .class-name
+    - 'tags': tag-name (e.g. path, rect, circle)
+    - 'ids': #id-name
+
     Uses tinycss2 if available, otherwise falls back to regex parser.
-    Example:
-      .cls-1 { fill: #1d1d1b; }
-      .cls-2, .cls-3 { fill: none; }
-      .cls-3 { stroke: #000; stroke-width: .24px; }
     """
-    rules: Dict[str, Dict[str, str]] = {}
+    rules: Dict[str, Dict[str, Dict[str, str]]] = {
+        'classes': {},
+        'tags': {},
+        'ids': {}
+    }
     if not style_content:
         return rules
+
+    def add_selector_rule(sel_str: str, declarations: Dict[str, str]):
+        sel_clean = sel_str.strip()
+        if not sel_clean:
+            return
+        if sel_clean.startswith('.'):
+            cls_name = sel_clean[1:].strip()
+            if cls_name:
+                rules['classes'].setdefault(cls_name, {}).update(declarations)
+        elif sel_clean.startswith('#'):
+            id_name = sel_clean[1:].strip()
+            if id_name:
+                rules['ids'].setdefault(id_name, {}).update(declarations)
+        else:
+            tag_name = sel_clean.lower().strip()
+            if tag_name:
+                rules['tags'].setdefault(tag_name, {}).update(declarations)
 
     if HAS_TINYCSS2:
         try:
             rulesets = tinycss2.parse_stylesheet(style_content, skip_comments=True, skip_whitespace=True)
             for rule in rulesets:
                 if rule.type == 'qualified-rule':
-                    # Extract selector text
                     selector_str = "".join([token.serialize() for token in rule.prelude]).strip()
-                    # Extract declaration block
                     declarations = tinycss2.parse_declaration_list(rule.content, skip_comments=True, skip_whitespace=True)
                     props: Dict[str, str] = {}
                     for decl in declarations:
                         if decl.type == 'declaration':
-                            prop_name = decl.name.lower()
+                            prop_name = decl.name.lower().strip()
                             prop_val = "".join([token.serialize() for token in decl.value]).strip().lower()
                             props[prop_name] = prop_val
 
                     for sel in selector_str.split(','):
-                        sel_clean = sel.strip()
-                        if sel_clean.startswith('.'):
-                            class_name = sel_clean[1:]
-                            if class_name not in rules:
-                                rules[class_name] = {}
-                            rules[class_name].update(props)
-            if rules:
+                        add_selector_rule(sel, props)
+            if rules['classes'] or rules['tags'] or rules['ids']:
                 return rules
         except Exception as e:
-            # tinycss2 failed unexpectedly; surface it as a warning and fall back
-            # to the regex parser instead of silently discarding the error.
             import warnings as _warnings
             _warnings.warn(
-                f"tinycss2 failed to parse CSS <style> block ({e!r}); "
-                "falling back to regex CSS parser.",
+                f"tinycss2 failed to parse CSS <style> block ({e!r}); falling back to regex CSS parser.",
                 RuntimeWarning, stacklevel=2,
             )
 
@@ -90,12 +111,7 @@ def parse_css_style_block(style_content: str) -> Dict[str, Dict[str, str]]:
                 props[key.strip().lower()] = val.strip().lower()
 
         for sel in selectors.split(','):
-            sel_clean = sel.strip()
-            if sel_clean.startswith('.'):
-                class_name = sel_clean[1:]
-                if class_name not in rules:
-                    rules[class_name] = {}
-                rules[class_name].update(props)
+            add_selector_rule(sel, props)
 
     return rules
 
@@ -112,25 +128,52 @@ def parse_style_attribute(style_str: str) -> Dict[str, str]:
     return props
 
 
-def parse_length(val_str: str, default: float = 0.0) -> float:
-    """Parses length values like '.24px', '100', '10.5mm', '12pt' to float pixels."""
-    if not val_str:
+def parse_length(val_str: Any, default: float = 0.0) -> float:
+    """
+    Parses standard SVG length values with full unit conversion to float pixels:
+    - px: 1:1 pixel
+    - pt: 1.333333 px (96 / 72)
+    - pc: 16.0 px (1 pica = 12 pt)
+    - in: 96.0 px (1 inch = 96 px)
+    - mm: 3.779527559 px (96 / 25.4)
+    - cm: 37.79527559 px (96 / 2.54)
+    - em / rem: 16.0 px standard baseline
+    """
+    if val_str is None:
         return default
-    val_str = str(val_str).strip().lower()
-    if val_str.endswith('px'):
-        val_str = val_str[:-2]
-    elif val_str.endswith('pt'):
+    s = str(val_str).strip().lower()
+    if not s:
+        return default
+
+    # Standard conversion factors to CSS / SVG pixels (96 DPI baseline)
+    unit_map = {
+        'px': 1.0,
+        'pt': 96.0 / 72.0,           # ~1.333333
+        'pc': 16.0,                  # 12 pt = 16 px
+        'in': 96.0,                  # 1 in = 96 px
+        'mm': 96.0 / 25.4,           # ~3.779528 px
+        'cm': 960.0 / 25.4,          # ~37.795276 px
+        'em': 16.0,
+        'rem': 16.0,
+    }
+
+    for unit, factor in unit_map.items():
+        if s.endswith(unit):
+            num_part = s[:-len(unit)].strip()
+            try:
+                return float(num_part) * factor
+            except ValueError:
+                return default
+
+    if s.endswith('%'):
+        num_part = s[:-1].strip()
         try:
-            return float(val_str[:-2]) * 1.33333
+            return float(num_part)
         except ValueError:
             return default
-    elif val_str.endswith('em') or val_str.endswith('rem'):
-        try:
-            return float(val_str[:-2]) * 16.0
-        except ValueError:
-            return default
+
     try:
-        return float(val_str)
+        return float(s)
     except ValueError:
         return default
 
@@ -147,16 +190,15 @@ class SVGNode:
         self.fill = styles.get('fill', 'black')
         self.stroke = styles.get('stroke', 'none')
         self.stroke_width = parse_length(styles.get('stroke-width', '1'), default=1.0)
-        self.opacity = float(styles.get('opacity', '1.0'))
+        self.opacity = safe_float(styles.get('opacity', '1.0'), default=1.0)
         self.display = styles.get('display', 'inline')
         self.visibility = styles.get('visibility', 'visible')
 
         # Per-channel alpha: effective alpha = opacity * channel_opacity (SVG spec)
-        # fill-opacity and stroke-opacity default to 1.0 when not specified.
-        _fill_opacity = float(styles.get('fill-opacity', '1.0'))
-        _stroke_opacity = float(styles.get('stroke-opacity', '1.0'))
-        self.effective_fill_alpha = self.opacity * _fill_opacity
-        self.effective_stroke_alpha = self.opacity * _stroke_opacity
+        _fill_opacity = safe_float(styles.get('fill-opacity', '1.0'), default=1.0)
+        _stroke_opacity = safe_float(styles.get('stroke-opacity', '1.0'), default=1.0)
+        self.effective_fill_alpha = max(0.0, min(1.0, self.opacity * _fill_opacity))
+        self.effective_stroke_alpha = max(0.0, min(1.0, self.opacity * _stroke_opacity))
 
         # Flags: use per-channel alpha so fill-opacity:0 correctly marks fill invisible.
         self.has_fill = (
@@ -181,26 +223,36 @@ class SVGLoader:
         self.filepath = filepath
         self.tree = ET.parse(filepath)
         self.root = self.tree.getroot()
-        self.css_rules: Dict[str, Dict[str, str]] = {}
+        self.css_classes: Dict[str, Dict[str, str]] = {}
+        self.css_tags: Dict[str, Dict[str, str]] = {}
+        self.css_ids: Dict[str, Dict[str, str]] = {}
+        self.id_map: Dict[str, ET.Element] = {}
         self.viewbox: Optional[Tuple[float, float, float, float]] = None
         self.width: float = 0.0
         self.height: float = 0.0
         self.warnings: List[str] = []
 
+        self._index_element_ids(self.root)
         self._parse_metadata()
         self._collect_css_styles()
+
+    def _index_element_ids(self, elem: ET.Element):
+        """Indexes all elements with an 'id' attribute for <use> element referencing."""
+        elem_id = elem.attrib.get('id')
+        if elem_id:
+            self.id_map[elem_id] = elem
+        for child in elem:
+            self._index_element_ids(child)
 
     def _parse_metadata(self):
         """Extracts viewBox, width, and height from root <svg> tag."""
         root_attribs = self.root.attrib
-
-        # Case-insensitive attribute lookup
         attr_map = {k.lower(): v for k, v in root_attribs.items()}
 
         # viewBox: "minX minY width height"
         if 'viewbox' in attr_map:
-            parts = [float(p) for p in re.split(r'[\s,]+', attr_map['viewbox'].strip()) if p]
-            if len(parts) == 4:
+            parts = [safe_float(p, 0.0) for p in re.split(r'[\s,]+', attr_map['viewbox'].strip()) if p]
+            if len(parts) == 4 and parts[2] > 0 and parts[3] > 0:
                 self.viewbox = (parts[0], parts[1], parts[2], parts[3])
 
         w_str = attr_map.get('width', '')
@@ -221,24 +273,31 @@ class SVGLoader:
             self.warnings.append("viewBox and width/height missing. Defaulted to (0, 0, 100, 100).")
 
     def _collect_css_styles(self):
-        """Extracts all <style> tag contents from SVG."""
+        """Extracts all <style> tag contents from SVG and populates class, tag, and ID rule dictionaries."""
         for elem in self.root.iter():
             tag = elem.tag.split('}')[-1]
             if tag == 'style' and elem.text:
                 parsed = parse_css_style_block(elem.text)
-                for cls_name, props in parsed.items():
-                    if cls_name not in self.css_rules:
-                        self.css_rules[cls_name] = {}
-                    self.css_rules[cls_name].update(props)
+                for cls_name, props in parsed.get('classes', {}).items():
+                    self.css_classes.setdefault(cls_name, {}).update(props)
+                for tag_name, props in parsed.get('tags', {}).items():
+                    self.css_tags.setdefault(tag_name, {}).update(props)
+                for id_name, props in parsed.get('ids', {}).items():
+                    self.css_ids.setdefault(id_name, {}).update(props)
 
     def get_elements(self) -> List[Tuple[SVGNode, List[str]]]:
         """
         Traverses SVG tree and returns a list of (SVGNode, transform_stack).
-        Applies style priority: Inline style > Presentation Attrs > CSS Class > Inherited.
-        Detects clipPath, mask, and fill-rule features for warnings.
+        Applies SVG standard style priority:
+        1. Inherited parent styles
+        2. CSS Tag rules (path { ... })
+        3. CSS Class rules (.st0 { ... })
+        4. CSS ID rules (#my-id { ... })
+        5. Presentation attributes (fill="...", stroke="...")
+        6. Inline styles (style="fill: ...")
         """
         elements: List[Tuple[SVGNode, List[str]]] = []
-        self._traverse_node(self.root, parent_styles={}, transform_stack=[], results=elements)
+        self._traverse_node(self.root, parent_styles={}, transform_stack=[], results=elements, visited_use_ids=set())
         return elements
 
     def _traverse_node(
@@ -246,10 +305,12 @@ class SVGLoader:
         elem: ET.Element,
         parent_styles: Dict[str, str],
         transform_stack: List[str],
-        results: List[Tuple[SVGNode, List[str]]]
+        results: List[Tuple[SVGNode, List[str]]],
+        visited_use_ids: Set[str]
     ):
-        tag = elem.tag.split('}')[-1]
-        
+        raw_tag = elem.tag
+        tag = raw_tag.split('}')[-1]
+
         # Feature detection warnings
         if tag == 'clipPath':
             self.warnings.append("clipPath element detected. Clipping geometry bounds are ignored in core v1.0.")
@@ -258,44 +319,74 @@ class SVGLoader:
             self.warnings.append("mask attribute/element detected. Alpha masking is ignored in core v1.0.")
             return
         if elem.attrib.get('fill-rule') == 'evenodd':
-            self.warnings.append("fill-rule='evenodd' detected. Default non-zero winding rule used in core v1.0.")
+            self.warnings.append("fill-rule='evenodd' detected.")
 
         if tag in ('defs', 'symbol'):
-            return  # Skip definitions and non-rendered templates
+            return  # Skip definitions and non-rendered templates directly
 
-        # Inherit parent styles
+        # Resolve CSS hierarchy
         effective_styles = parent_styles.copy()
 
-        # 1. CSS Class rules
+        # 1. Tag-level CSS rules (e.g. path { fill: black; })
+        if tag in self.css_tags:
+            effective_styles.update(self.css_tags[tag])
+
+        # 2. Class-level CSS rules (e.g. .cls-1 { fill: red; })
         class_attr = elem.attrib.get('class', '')
         if class_attr:
             for cls_name in class_attr.split():
-                if cls_name in self.css_rules:
-                    effective_styles.update(self.css_rules[cls_name])
+                if cls_name in self.css_classes:
+                    effective_styles.update(self.css_classes[cls_name])
 
-        # 2. Presentation Attributes (fill, stroke, stroke-width, etc.)
+        # 3. ID-level CSS rules (e.g. #star1 { fill: blue; })
+        elem_id = elem.attrib.get('id', '')
+        if elem_id and elem_id in self.css_ids:
+            effective_styles.update(self.css_ids[elem_id])
+
+        # 4. Presentation Attributes
         for attr_key, attr_val in elem.attrib.items():
-            if attr_key in ('fill', 'stroke', 'stroke-width', 'opacity', 'display', 'visibility', 'fill-opacity', 'stroke-opacity'):
-                effective_styles[attr_key.lower()] = attr_val.lower()
+            k_clean = attr_key.lower().strip()
+            if k_clean in ('fill', 'stroke', 'stroke-width', 'opacity', 'display', 'visibility', 'fill-opacity', 'stroke-opacity'):
+                effective_styles[k_clean] = attr_val.strip().lower()
 
-        # 3. Inline style attribute (highest priority)
+        # 5. Inline style attribute (highest priority)
         inline_style_str = elem.attrib.get('style', '')
         if inline_style_str:
             effective_styles.update(parse_style_attribute(inline_style_str))
 
-        # Transform attribute handling
-        node_transform = elem.attrib.get('transform', '')
+        # Transform stack
         current_transform_stack = list(transform_stack)
+        node_transform = elem.attrib.get('transform', '')
         if node_transform:
             current_transform_stack.append(node_transform)
 
-        # Check if rendering element
+        # Handle <use> element instantiation
+        if tag == 'use':
+            # Resolve target href (#id or xlink:href)
+            href = elem.attrib.get('href') or elem.attrib.get('{http://www.w3.org/1999/xlink}href') or elem.attrib.get('xlink:href', '')
+            if href.startswith('#'):
+                target_id = href[1:].strip()
+                if target_id in self.id_map and target_id not in visited_use_ids:
+                    target_elem = self.id_map[target_id]
+                    use_transforms = list(current_transform_stack)
+                    # Apply x, y translation if specified on <use>
+                    use_x = parse_length(elem.attrib.get('x', '0'), 0.0)
+                    use_y = parse_length(elem.attrib.get('y', '0'), 0.0)
+                    if use_x != 0.0 or use_y != 0.0:
+                        use_transforms.append(f"translate({use_x}, {use_y})")
+
+                    new_visited = visited_use_ids.copy()
+                    new_visited.add(target_id)
+                    self._traverse_node(target_elem, effective_styles, use_transforms, results, new_visited)
+            return
+
+        # Check if renderable shape element
         render_tags = {'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon'}
         if tag in render_tags:
             node = SVGNode(tag, elem.attrib, effective_styles, node_transform)
             if node.is_visible:
                 results.append((node, current_transform_stack))
 
-        # Recurse into children (e.g. <g> groups)
+        # Recurse into child elements (e.g. <g> containers)
         for child in elem:
-            self._traverse_node(child, effective_styles, current_transform_stack, results)
+            self._traverse_node(child, effective_styles, current_transform_stack, results, visited_use_ids)

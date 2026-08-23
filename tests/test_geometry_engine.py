@@ -236,11 +236,11 @@ class TestExtractNodeGeometries(unittest.TestCase):
         geoms = extract_node_geometries(n, [])
         self.assertAlmostEqual(geoms[0].shapely_obj.area, 100.0 - 16.0)
 
-    def test_nonzero_fill_rule_unions_subpaths(self):
+    def test_nonzero_fill_rule_preserves_holes(self):
         d = 'M 0 0 L 10 0 L 10 10 L 0 10 Z M 3 3 L 7 3 L 7 7 L 3 7 Z'
         n = node('path', {'d': d}, styles={'fill': 'black'})
         geoms = extract_node_geometries(n, [])
-        self.assertAlmostEqual(geoms[0].shapely_obj.area, 100.0)
+        self.assertAlmostEqual(geoms[0].shapely_obj.area, 100.0 - 16.0)
 
     def test_self_intersecting_polygon_is_repaired(self):
         n = node('path', {'d': 'M 0 0 L 10 10 L 10 0 L 0 10 Z'}, styles={'fill': 'black'})

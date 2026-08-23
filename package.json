@@ -1,6 +1,6 @@
 {
   "name": "rash-hit-fractal-analiz-studio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns.",
   "main": "bin/cli.js",
   "bin": {
