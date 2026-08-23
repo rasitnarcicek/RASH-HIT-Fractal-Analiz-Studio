@@ -45,6 +45,11 @@ dist/
 *.egg
 .eggs/
 
+# Node / npm
+node_modules/
+.npmrc
+package-lock.json
+
 # Internal master architecture & benchmark files
 PROJE_MIMARI_VE_KOD_HARITASI.md
 PROJE_TUM_MIMARI_VE_KOD_HARITASI.md

@@ -2,6 +2,7 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-green.svg)](https://www.python.org/)
+[![npm version](https://img.shields.io/npm/v/rash-hit-fractal-studio.svg)](https://www.npmjs.com/package/rash-hit-fractal-studio)
 [![Concept DOI](https://img.shields.io/badge/Concept_DOI-10.5281%2Fzenodo.21693694-blue.svg)](https://doi.org/10.5281/zenodo.21693694)
 [![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22063154-blue.svg)](https://doi.org/10.5281/zenodo.22063154)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
@@ -47,18 +48,29 @@ Standard raster-based box-counting tools convert vector artworks into fixed pixe
 
 ## 📦 Installation & Setup
 
-### Method 1: Install from PyPI (Recommended)
+### Method 1: Run instantly with NPX (Zero Setup)
+```bash
+# Run immediately without manual dependency installation
+npx rash-hit-fractal-studio --input input_svgs/16D.svg --levels 7
+
+# Or install globally via npm
+npm install -g rash-hit-fractal-studio
+rash-hit-fractal --input input_svgs/16D.svg --levels 7
+```
+*(All required Python dependencies like NumPy and Shapely will be automatically detected and installed on first run).*
+
+### Method 2: Install from PyPI
 ```bash
 pip install rash-hit-fractal-studio
 ```
 
-### Method 2: Install from Source
+### Method 3: Install from Source
 ```bash
 # Clone the repository
 git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.git
 cd RASH-HIT-Fractal-Studio
 
-# Install in editable mode or install dependencies
+# Install in editable mode
 pip install -e .
 ```
 

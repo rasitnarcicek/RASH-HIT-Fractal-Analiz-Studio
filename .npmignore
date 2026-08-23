@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/__pycache__/
+.pytest_cache/
+tests/
+.git/
+.github/
+.vscode/
+.idea/
+.npmrc
+*.whl
+*.tar.gz
+build/
+dist/
+*.egg-info/

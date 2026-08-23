@@ -1,0 +1,51 @@
+{
+  "name": "rash-hit-fractal-studio",
+  "version": "1.0.0",
+  "description": "Exact vector geometry box-counting and fractal dimension (Db) analysis CLI engine for SVG motifs.",
+  "main": "bin/cli.js",
+  "bin": {
+    "rash-hit-fractal": "bin/cli.js",
+    "rash-hit-fractal-studio": "bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js",
+    "postinstall": "node bin/cli.js --version || exit 0",
+    "test": "python -m unittest discover -s tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.git"
+  },
+  "keywords": [
+    "fractal",
+    "fractal-dimension",
+    "box-counting",
+    "svg",
+    "vector-geometry",
+    "cli",
+    "computational-geometry",
+    "motif-analysis",
+    "cultural-heritage",
+    "architecture"
+  ],
+  "author": "Mehmet Raşit Narçiçek",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio/issues"
+  },
+  "homepage": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio#readme",
+  "files": [
+    "bin",
+    "backend",
+    "run_analysis.py",
+    "requirements.txt",
+    "pyproject.toml",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "CITATION.cff"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
