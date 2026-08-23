@@ -52,9 +52,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio"
-Repository = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio"
-"Bug Tracker" = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio/issues"
+Homepage = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio"
+Repository = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio"
+"Bug Tracker" = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio/issues"
 "Zenodo DOI" = "https://doi.org/10.5281/zenodo.22063154"
 
 [project.scripts]

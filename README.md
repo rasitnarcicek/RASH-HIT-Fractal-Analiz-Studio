@@ -106,8 +106,8 @@ pip install rash-hit-fractal-analiz-studio
 
 ### Method 3: Install from Source
 ```bash
-git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.git
-cd RASH-HIT-Fractal-Studio
+git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio.git
+cd RASH-HIT-Fractal-Analiz-Studio
 pip install -e .
 ```
 

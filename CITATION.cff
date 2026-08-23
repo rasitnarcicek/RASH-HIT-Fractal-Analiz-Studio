@@ -5,7 +5,7 @@ abstract: "A research-grade, zero-rasterization computational geometry engine fo
 version: "1.0.0"
 date-released: "2026-08-23"
 license: "Apache-2.0"
-repository-code: "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio"
+repository-code: "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio"
 doi: "10.5281/zenodo.22063154"
 identifiers:
   - type: doi

@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.git"
+    "url": "git+https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio.git"
   },
   "keywords": [
     "fractal",
@@ -38,9 +38,9 @@
   "author": "Mehmet Raşit Narçiçek",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio/issues"
+    "url": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio/issues"
   },
-  "homepage": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio#readme",
+  "homepage": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio#readme",
   "files": [
     "bin",
     "backend",
