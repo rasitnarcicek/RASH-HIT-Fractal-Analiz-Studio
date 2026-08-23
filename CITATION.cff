@@ -5,6 +5,14 @@ version: "1.0.0"
 date-released: "2026-08-23"
 license: "Apache-2.0"
 repository-code: "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio"
+doi: "10.5281/zenodo.21704656"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21704656"
+    description: "Version DOI for RASH-HIT Fractal Studio"
+  - type: doi
+    value: "10.5281/zenodo.21693694"
+    description: "Concept DOI for RASH-HIT Fractal Studio"
 authors:
   - family-names: "Narçiçek"
     given-names: "Mehmet Raşit"
