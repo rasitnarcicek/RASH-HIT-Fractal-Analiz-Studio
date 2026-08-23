@@ -3,7 +3,7 @@
 
 """
 RASH-HIT Fractal Analiz Studio - Vector Geometry Box-Counting Engine
-Version: 1.0.0
+Version: 1.0.1
 """
 
 import argparse
@@ -91,7 +91,7 @@ def main():
     _input_group.add_argument("-i", "--input", type=str, help="Input SVG file path")
     _input_group.add_argument("-d", "--dir", type=str, help="Directory path for batch processing all SVG files")
     parser.add_argument("-l", "--levels", type=int, default=7, help="Number of grid levels (default: 7)")
-    parser.add_argument("-v", "--version", action="version", version="RASH-HIT Fractal Analiz Studio v1.0.0")
+    parser.add_argument("-v", "--version", action="version", version="RASH-HIT Fractal Analiz Studio v1.0.1")
 
     args = parser.parse_args()
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rash-hit-fractal-studio"
-version = "1.0.0"
+version = "1.0.1"
 description = "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns."
 readme = "README.md"
 requires-python = ">=3.9"
