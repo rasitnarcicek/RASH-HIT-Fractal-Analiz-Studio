@@ -2,7 +2,7 @@
 # Copyright 2026 Mehmet Raşit Narçiçek
 
 """
-RASH-HIT Fractal Analiz Studio - Vector Geometry Box-Counting Engine
+RASH-HIT Fractal Analiz Studio
 Version: 1.0.0
 """
 
@@ -86,7 +86,7 @@ def process_single_file(input_file: str, levels: int = 7):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RASH-HIT Fractal Analiz Studio - Vector Geometry Box-Counting Engine")
+    parser = argparse.ArgumentParser(description="RASH-HIT Fractal Analiz Studio")
     _input_group = parser.add_mutually_exclusive_group(required=False)
     _input_group.add_argument("-i", "--input", type=str, help="Input SVG file path")
     _input_group.add_argument("-d", "--dir", type=str, help="Directory path for batch processing all SVG files")

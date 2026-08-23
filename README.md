@@ -167,7 +167,7 @@ If you use **RASH-HIT Fractal Analiz Studio** in your research, thesis, journal 
 ```bibtex
 @software{Narcicek_RASH_HIT_Fractal_Analiz_Studio_2026,
   author    = {Nar{\c{c}}i{\c{c}}ek, Mehmet Ra{\s}it},
-  title     = {RASH-HIT Fractal Analiz Studio: Exact Vector Geometry Box-Counting and Fractal Dimension Engine},
+  title     = {RASH-HIT Fractal Analiz Studio},
   year      = {2026},
   version   = {1.0.0},
   publisher = {GitHub},
@@ -179,13 +179,13 @@ If you use **RASH-HIT Fractal Analiz Studio** in your research, thesis, journal 
 ```
 
 ### APA
-> Narçiçek, M. R. (2026). *RASH-HIT Fractal Analiz Studio: Exact Vector Geometry Box-Counting and Fractal Dimension Engine* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22069153
+> Narçiçek, M. R. (2026). *RASH-HIT Fractal Analiz Studio* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22069153
 
 ### RIS
 ```ris
 TY  - COMP
 AU  - Narçiçek, Mehmet Raşit
-TI  - RASH-HIT Fractal Analiz Studio: Exact Vector Geometry Box-Counting and Fractal Dimension Engine
+TI  - RASH-HIT Fractal Analiz Studio
 PY  - 2026
 ET  - 1.0.0
 PB  - GitHub

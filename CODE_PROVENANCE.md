@@ -1,7 +1,7 @@
 # Code Provenance & Authorship Statement
 
 ## 1. Original Development Statement
-RASH-HIT Fractal Analiz Studio CLI was developed as an original academic and computational geometry software project by Mehmet Raşit Narçiçek.
+RASH-HIT Fractal Analiz Studio was developed as an original academic and computational geometry software project by Mehmet Raşit Narçiçek.
 
 ## 2. Scope & Intellectual Property Boundaries
 The project does not claim ownership over GEOS, Shapely, standard box-counting theory, or general quadtree data structures.
