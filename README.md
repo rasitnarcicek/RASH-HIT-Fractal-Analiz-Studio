@@ -113,7 +113,7 @@ pip install -e .
 
 ---
 
-## 🚀 CLI Usage & Examples
+## 🚀 Usage & Examples
 
 When installed via `pip` or `npm`, the `rash-hit-fractal` command is available system-wide:
 

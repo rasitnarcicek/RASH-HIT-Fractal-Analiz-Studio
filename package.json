@@ -1,7 +1,7 @@
 {
   "name": "rash-hit-fractal-analiz-studio",
   "version": "1.0.0",
-  "description": "Exact vector geometry box-counting and fractal dimension (Db) analysis CLI engine for SVG motifs, textile designs, and architectural patterns.",
+  "description": "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns.",
   "main": "bin/cli.js",
   "bin": {
     "rash-hit-fractal": "bin/cli.js",
@@ -23,7 +23,6 @@
     "box-counting",
     "svg",
     "vector-geometry",
-    "cli",
     "computational-geometry",
     "motif-analysis",
     "textile-design",

@@ -18,8 +18,8 @@ The original contribution of this project lies in:
 
 | Module / File Path | Author | Provenance & Description |
 |:---|:---|:---|
-| `run_analysis.py` | Mehmet Raşit Narçiçek | Original CLI entry point & terminal reporting manager. |
-| `bin/cli.js` | Mehmet Raşit Narçiçek | Original npm CLI runner & automatic dependency installer. |
+| `run_analysis.py` | Mehmet Raşit Narçiçek | Original command-line entry point & terminal reporting manager. |
+| `bin/cli.js` | Mehmet Raşit Narçiçek | Original npm runner & automatic dependency installer. |
 | `backend/svg_loader.py` | Mehmet Raşit Narçiçek | Original SVG parsing, CSS style resolution, and ViewBox scale engine. |
 | `backend/geometry_engine.py` | Mehmet Raşit Narçiçek | Original vector path extraction & 2D transform matrix resolver. |
 | `backend/grid_planner.py` | Mehmet Raşit Narçiçek | Original aspect-ratio-aware grid plan generator. |
