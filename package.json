@@ -1,7 +1,7 @@
 {
   "name": "rash-hit-fractal-studio",
   "version": "1.0.0",
-  "description": "Exact vector geometry box-counting and fractal dimension (Db) analysis CLI engine for SVG motifs.",
+  "description": "Exact vector geometry box-counting and fractal dimension (Db) analysis CLI engine for SVG motifs, textile designs, and architectural patterns.",
   "main": "bin/cli.js",
   "bin": {
     "rash-hit-fractal": "bin/cli.js",
@@ -25,8 +25,14 @@
     "cli",
     "computational-geometry",
     "motif-analysis",
+    "textile-design",
+    "fashion-design",
+    "pattern-analysis",
     "cultural-heritage",
-    "architecture"
+    "architecture-morphology",
+    "graphic-design",
+    "digital-humanities",
+    "ornament-analysis"
   ],
   "author": "Mehmet Raşit Narçiçek",
   "license": "Apache-2.0",

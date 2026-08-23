@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rash-hit-fractal-studio"
 version = "1.0.0"
-description = "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs."
+description = "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
@@ -15,16 +15,25 @@ authors = [
 keywords = [
     "box-counting",
     "fractal-dimension",
-    "svg",
+    "fractal-analysis",
+    "svg-analysis",
     "vector-geometry",
     "shapely",
     "computational-geometry",
     "motif-analysis",
-    "cultural-heritage"
+    "textile-design",
+    "pattern-analysis",
+    "cultural-heritage",
+    "architecture-morphology",
+    "graphic-design",
+    "fashion-design",
+    "digital-humanities",
+    "ornament-analysis"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -32,6 +41,8 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Multimedia :: Graphics",
 ]
 dependencies = [
     "numpy>=1.24.0",

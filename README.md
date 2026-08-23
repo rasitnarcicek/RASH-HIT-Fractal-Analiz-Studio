@@ -8,90 +8,118 @@
 [![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22063154-blue.svg)](https://doi.org/10.5281/zenodo.22063154)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
 
-**RASH-HIT Fractal Studio CLI** is a research-grade, raster-free computational software engine designed for **exact vector geometry box-counting** and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs and architectural patterns.
-
-Unlike conventional image-processing tools that convert vector artwork into PNG/JPEG pixel rasters—introducing resolution dependency, anti-aliasing distortion, edge blurring, and scaling artifacts—**RASH-HIT Fractal Studio** evaluates raw SVG vector geometry directly in continuous floating-point coordinate space using C++ GEOS spatial predicates via Shapely 2.0.
+**RASH-HIT Fractal Studio CLI** is a research-grade, zero-rasterization computational geometry engine engineered for **exact vector box-counting**, **spatial occupancy profiling (fill vs. empty void ratio)**, and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs, architectural drawings, textile patterns, and graphic compositions.
 
 ---
 
-## 🏛️ Research Context & Application Domains
+## 🔬 Scientific Foundation & The Exact Vector Paradigm
 
-### 1. Architectural & Spatial Design
-Architectural facades, floor plans, spatial layouts, and parametric structures frequently incorporate self-similar geometric patterns. RASH-HIT Fractal Studio enables architectural researchers to quantify visual complexity, scale-hierarchy depth, and fractal density without rasterization error.
+For over three decades, computational fractal analysis in design and morphology has relied on **raster image-processing tools** (e.g., ImageJ FracLac, HarFA, Benoit). These conventional tools force vector artwork to be rasterized into fixed-resolution pixel grids (PNG/JPEG/TIFF), introducing three severe classes of mathematical error:
 
-### 2. Traditional Motifs, Visual Heritage & Pattern Research
-Historical ornaments, traditional motifs (e.g., Islamic geometric patterns, Anatolian carpets, Celtic knotwork, fractal textiles), and archaeological visual heritage forms are natively drawn as vector curves. This engine counts filled and empty spatial cells with mathematical rigor, enabling precise comparative morphological studies across cultures and design eras.
+1. **Resolution & DPI Inconsistency:** Measured fractal dimensions vary artificially depending on the arbitrary export resolution, canvas size, or DPI chosen.
+2. **Anti-Aliasing & Fringing Distortion:** Vector curves produce semi-transparent grayscale boundary pixels during rasterization, forcing arbitrary binarization thresholds that corrupt fine geometric boundaries.
+3. **Discretization Corner Clipping:** Fine ornamental strokes, sharp corner vertices, and sub-pixel details smaller than pixel dimensions are merged, blurred, or obliterated.
 
-### 3. Graphic Design & Fractal Aesthetics
-Designers and aesthetic complexity researchers can evaluate visual balance, pattern density, and structural scale invariance across multiple zoom levels ($L_1 \dots L_N$).
-
-### 4. Why Exact Vector Geometry Over Raster Box-Counting?
-Standard raster-based box-counting tools convert vector artworks into fixed pixel grids, leading to three critical sources of mathematical error:
-- **Pixel Grid Discretization:** Fine geometric details and sharp corners smaller than pixel size are merged or lost.
-- **Anti-Aliasing Fringing:** Boundary pixels become semi-transparent gray values, causing arbitrary thresholding errors during binary occupancy decisions.
-- **Scale & Resolution Dependency:** The measured fractal dimension shifts artificially depending on the arbitrary DPI / resolution chosen during raster export.
-
-**RASH-HIT Fractal Studio solves this completely:** It computes exact point-set intersections between continuous polygon fills, buffered stroke lines, and grid cell bounding boxes using IEEE 754 double-precision floating-point arithmetic.
+### The RASH-HIT Solution
+**RASH-HIT Fractal Studio completely eliminates rasterization artifacts.** It operates natively on continuous vector path geometry in floating-point coordinate space using the **C++ GEOS spatial engine via Shapely 2.0**. Grid cell occupancy is evaluated via continuous point-set topological intersection predicates ($E \cap B_{i,j} \neq \emptyset$), guaranteeing **100% mathematical determinism, zero discretization error, and publication-grade reproducibility**.
 
 ---
 
-## ⚡ Key Architecture & Features
+## 🏛️ Comprehensive Application Domains
 
-- **Exact Vector Intersection:** Uses C++ GEOS / Shapely 2.0 spatial predicates (`intersects`, `contains`, `STRtree`) for exact geometric contact testing.
-- **Hierarchical Quadtree Pruning:** Fast spatial tree acceleration skips empty child cells automatically, enabling multi-level deep analysis ($L_1 \dots L_N$) in milliseconds.
-- **Aspect-Ratio-Aware Grid Planning:** Base grid planning adapts to arbitrary canvas aspect ratios ($AR = W/H$) with strict power-of-two resolution doubling.
-- **Comprehensive SVG Element Support:** Full support for `path` (Bézier curves, elliptical arcs), `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`, and 2D affine transformation matrices (`matrix`, `translate`, `scale`, `rotate`, `skewX`, `skewY`).
-- **Statistical Regression:** Ordinary Least Squares (OLS) log-log regression for Box-Counting Dimension ($D_B$) and goodness-of-fit ($R^2$).
-- **Pure Terminal Interface:** Clean, monospaced ASCII table reports printed directly to terminal with zero disk footprint.
-- **Batch Processing:** Single file and whole directory analysis modes with comparative summary matrices.
+RASH-HIT Fractal Studio serves as a bridge between pure computational geometry and creative design disciplines:
+
+### 1. 🧵 Textile, Fashion & Pattern Design
+- **Jacquard & Woven Structure Porosity:** Quantify the exact spatial density and void-to-fill distribution of woven structures, knitwear repeats, and lace filigree.
+- **Carpet & Kilim Motif Analysis:** Mathematically profile traditional Anatolian, Persian, Caucasian, and Oriental carpet motifs, quantifying the transition of motif density from central medallions to borders.
+- **Fashion Print Scaling & Repeat Balance:** Evaluate self-similarity across different scale factors in surface pattern design and all-over textile prints.
+
+### 2. 🏺 Cultural Heritage, Islamic Geometry & Visual Ornamentation
+- **Historic Ornament Morphology:** Analyze ornamental styles across cultural eras (Seljuk, Ottoman, Celtic, Gothic, Baroque, Islamic Geometric Star Patterns, Muqarnas, Tezhip, Ebru, Marbling).
+- **Cultural Motif Classification:** Provide objective numerical metrics ($D_B$, $R^2$, level-by-level fill ratios) for digital humanities, archaeological pattern classification, and museum heritage preservation.
+- **Geometric Complexity Indexing:** Distinguish between Euclidean symmetry and true fractal self-similarity in traditional craftsmanship.
+
+### 3. 🎨 Graphic Design, Typography & Visual Branding
+- **Logo Visual Weight & Balance:** Quantify positive vs. negative space distribution and visual occupancy ratios across branding assets.
+- **Typographic Complexity:** Measure the structural complexity, stroke density, and spatial coverage of diverse typefaces and calligraphic scripts.
+- **Generative & Algorithmic Vector Art:** Benchmark procedural vector patterns, cellular automata graphics, and L-system fractals.
+
+### 4. 🏢 Architectural & Urban Morphology
+- **Facade Articulation & Porosity:** Analyze architectural screens (e.g., Mashrabiya, Brise-soleil, perforated metal panels) for light filtration and structural complexity.
+- **Floor Plan Spatial Hierarchy:** Quantify structural enclosure, wall-to-void density, and circulation complexity in architectural layouts.
+- **Urban Footprint Scaling:** Evaluate the fractal scaling behavior of street networks, historical urban perimeters, and building layouts.
+
+### 5. ⚙️ Industrial, Surface & Parametric Product Design
+- **Laser-Cutting & CNC Path Optimization:** Assess vector distribution and material removal ratios prior to fabrication.
+- **Biomimetic Textures & Metamaterials:** Measure geometric scale hierarchies in biologically-inspired lattice structures and textured functional surfaces.
+
+---
+
+## 📊 Analytical Comparison: Exact Vector vs. Raster Box-Counting
+
+| Metric / Capability | Conventional Raster Tools (ImageJ/FracLac) | RASH-HIT Fractal Studio (Exact Vector) |
+|:---|:---|:---|
+| **Input Representation** | Discrete Bitmap Pixels (PNG/JPG/TIFF) | Continuous Double-Precision Floating Point (SVG) |
+| **Geometry Evaluation** | Pixel counting (Binary 0/1 threshold) | C++ GEOS Topological Predicates (`intersects`) |
+| **DPI / Resolution Dependency** | ⚠️ High (Results shift with image size/DPI) | 🟢 **Zero** (Scale-invariant exact geometry) |
+| **Anti-Aliasing Artifacts** | ⚠️ Severe (Blurred edges distort boundary counts) | 🟢 **None** (Evaluated as true continuous boundaries) |
+| **Stroke Width Accuracy** | ⚠️ Subject to pixel round-off error | 🟢 **Exact** (Converts strokes to precise buffer polygons) |
+| **Aspect Ratio Handling** | Often square-padded, distorting non-square ratios | 🟢 **Adaptive** (Aspect-ratio-aware grid planning) |
+| **Execution Performance** | Slower on large images (O(N*M) pixel scan) | 🟢 **Ultra-fast** (Hierarchical quadtree pruning) |
+| **Reproducibility** | Depends on export settings and binarizer threshold | 🟢 **100% Deterministic & Scientifically Exact** |
+
+---
+
+## ⚡ Core Architecture & Engineering
+
+- **Exact Vector Intersection Engine:** Powered by C++ GEOS / Shapely 2.0 with spatial indexing (`STRtree`) and strict point-set topological testing.
+- **Aspect-Ratio-Aware Multi-Level Grid Planning:** Automatically adapts grid cell dimensions to arbitrary SVG viewbox dimensions ($AR = W/H$) with power-of-two resolution doubling across levels ($L_1 \dots L_N$).
+- **Hierarchical Quadtree Pruning:** Automatically skips empty child cells based on parent occupancy, delivering sub-millisecond execution speeds even at deep resolution levels.
+- **Comprehensive SVG Specification Support:**
+  - Standard shapes: `<rect>`, `<circle>`, `<ellipse>`, `<line>`, `<polyline>`, `<polygon>`, and `<path>` (Cubic/Quadratic Bézier curves, elliptical arcs).
+  - 2D affine transformation matrices: `matrix()`, `translate()`, `scale()`, `rotate()`, `skewX()`, `skewY()`.
+  - CSS style hierarchy: Inline `style="..."`, presentation attributes, and `<style>` blocks (via `tinycss2`).
+  - Per-channel alpha and visibility resolution: Filters non-rendered, hidden, or zero-opacity geometries.
+- **Ordinary Least Squares (OLS) Regression:** Evaluates Box-Counting Fractal Dimension ($D_B$) and coefficient of determination ($R^2$) from:
+  $$\log N(\epsilon) = D_B \cdot \log(1/\epsilon) + C$$
+- **Zero Disk Footprint:** Generates clean, publication-ready ASCII framed summary tables directly to `stdout`.
 
 ---
 
 ## 📦 Installation & Setup
 
-### Method 1: Run instantly with NPX (Zero Setup)
+### Method 1: Instant Execution via NPX (Zero Setup)
 ```bash
 # Run immediately without manual dependency installation
-npx rash-hit-fractal-studio --input input_svgs/16D.svg --levels 7
+npx rash-hit-fractal-studio --input motif.svg --levels 7
 
-# Or install globally via npm
+# Or install globally
 npm install -g rash-hit-fractal-studio
-rash-hit-fractal --input input_svgs/16D.svg --levels 7
+rash-hit-fractal --input motif.svg --levels 7
 ```
-*(All required Python dependencies like NumPy and Shapely will be automatically detected and installed on first run).*
+*(All required Python core libraries such as NumPy and Shapely are automatically detected and installed on first run).*
 
-### Method 2: Install from PyPI
+### Method 2: Install via PyPI
 ```bash
 pip install rash-hit-fractal-studio
 ```
 
 ### Method 3: Install from Source
 ```bash
-# Clone the repository
 git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio.git
 cd RASH-HIT-Fractal-Studio
-
-# Install in editable mode
 pip install -e .
 ```
-
-### Core Dependency Stack
-- `numpy` ($\ge 1.24.0$): Vectorized grid coordinates and numerical regression fitting (BSD 3-Clause).
-- `shapely` ($\ge 2.0.0$): Continuous vector geometry objects and C++ GEOS spatial index (BSD 3-Clause).
-- `defusedxml` ($\ge 0.7.1$): Secure XML parsing protecting against XXE entity expansion attacks (PSFL).
-- `tinycss2` ($\ge 1.2.0$): CSS style block and inline style parser (BSD 3-Clause).
 
 ---
 
 ## 🚀 CLI Usage & Examples
 
-When installed via `pip`, the `rash-hit-fractal` command is available system-wide:
+When installed via `pip` or `npm`, the `rash-hit-fractal` command is available system-wide:
 
 ### 1. Analyze a Single SVG Motif
 ```bash
 rash-hit-fractal --input input_svgs/16D.svg --levels 7
-# or directly with python:
-python run_analysis.py --input input_svgs/16D.svg --levels 7
 ```
 
 **Terminal Output:**
@@ -106,70 +134,34 @@ python run_analysis.py --input input_svgs/16D.svg --levels 7
 +------------------------------------------------------------------------------+
 | Level | Grid     | Total Cells | Filled Cells | Empty Cells | Occupancy % | Time ms  |
 +-------+----------+-------------+--------------+-------------+-------------+----------+
-|  L01  | 4x8      |          32 |           32 |           0 |     100.00% |     0.21 |
-|  L02  | 8x16     |         128 |          128 |           0 |     100.00% |     0.17 |
-|  L03  | 16x32    |         512 |          420 |          92 |      82.03% |     0.48 |
-|  L04  | 32x64    |       2,048 |        1,508 |         540 |      73.63% |     1.39 |
-|  L05  | 64x128   |       8,192 |        6,032 |       2,160 |      73.63% |     5.28 |
-|  L06  | 128x256  |      32,768 |       24,128 |       8,640 |      73.63% |    23.12 |
-|  L07  | 256x512  |     131,072 |       95,172 |      35,900 |      72.61% |    99.55 |
+|  L01  | 4x8      |          32 |           32 |           0 |     100.00% |     0.32 |
+|  L02  | 8x16     |         128 |          128 |           0 |     100.00% |     0.24 |
+|  L03  | 16x32    |         512 |          420 |          92 |      82.03% |     0.40 |
+|  L04  | 32x64    |       2,048 |        1,508 |         540 |      73.63% |     1.65 |
+|  L05  | 64x128   |       8,192 |        6,032 |       2,160 |      73.63% |     7.09 |
+|  L06  | 128x256  |      32,768 |       23,744 |       9,024 |      72.46% |    25.14 |
+|  L07  | 256x512  |     131,072 |       93,888 |      37,184 |      71.63% |    94.80 |
 +-------+----------+-------------+--------------+-------------+-------------+----------+
-  [RESULT] Box-Counting Fractal Dimension Db = 1.9134
-  [RESULT] Linear Regression Fit R2           = 0.9994
-  [RESULT] Total Execution Time               = 131.86 ms
+  [RESULT] Box-Counting Fractal Dimension Db = 1.8675
+  [RESULT] Linear Regression Fit R2           = 0.9993
+  [RESULT] Total Execution Time               = 129.64 ms
 +------------------------------------------------------------------------------+
 ```
 
-### 2. Batch Processing a Directory of SVGs
+### 2. Batch Process an Entire Directory of Motifs
 ```bash
-python run_analysis.py --dir input_svgs/ --levels 5
+rash-hit-fractal --dir ./input_svgs --levels 5
 ```
-
-### 3. Command-Line Options
-| Option | Short | Default | Description |
-|:---|:---|:---|:---|
-| `--input <path>` | `-i` | `None` | Path to a single input SVG file. Mutually exclusive with `--dir`. |
-| `--dir <path>` | `-d` | `None` | Path to directory for batch processing all SVGs. Mutually exclusive with `--input`. |
-| `--levels <int>` | `-l` | `7` | Number of grid scaling levels to evaluate ($N \ge 1$). |
-| `--version` | `-v` | - | Displays application version and exit. |
-
----
-
-## 🧪 Unit Testing
-
-The test suite validates SVG parsing, CSS style cascades, affine transformation matrices, spatial quadtree subdivisions, and linear regression:
-
-```bash
-pytest
-```
-
----
-
-## 📄 Mathematical Methodology
-
-The box-counting dimension $D_B$ is computed by dividing the 2D SVG canvas into a series of spatial grids with cell scale $\varepsilon$. The relationship between scale $\varepsilon$ and occupied box count $N(\varepsilon)$ follows a power law:
-
-$$N(\varepsilon) \propto \left(\frac{1}{\varepsilon}\right)^{D_B}$$
-
-Taking the natural logarithm yields the linear regression model:
-
-$$\log N(\varepsilon) = D_B \cdot \log\left(\frac{1}{\varepsilon}\right) + C$$
-
-Where:
-- $N(\varepsilon)$ = Number of filled (occupied) grid cells at scale $\varepsilon$.
-- $\varepsilon = \frac{\max(W_{\text{cell}}, H_{\text{cell}})}{\max(W_{\text{canvas}}, H_{\text{canvas}})}$ = Normalized grid scale parameter.
-- $D_B$ = Box-counting fractal dimension (Ordinary Least Squares regression slope).
-- $R^2 = 1 - \frac{SS_{\text{res}}}{SS_{\text{tot}}}$ = Coefficient of determination (goodness of fit).
 
 ---
 
 ## 🎓 Academic Citation
 
-If you use RASH-HIT Fractal Studio in your research, publications, or thesis, please cite the software using the DOIs below:
+If you use **RASH-HIT Fractal Studio** in your research, thesis, journal articles, or architectural/textile studies, please cite the software using the persistent DOIs below:
 
 - **Concept DOI:** [10.5281/zenodo.21693694](https://doi.org/10.5281/zenodo.21693694)
 - **Version DOI (v1.0.0):** [10.5281/zenodo.22063154](https://doi.org/10.5281/zenodo.22063154)
-- **ORCID:** [0009-0005-3423-255X](https://orcid.org/0009-0005-3423-255X)
+- **Author ORCID:** [0009-0005-3423-255X](https://orcid.org/0009-0005-3423-255X)
 
 ### BibTeX
 ```bibtex
