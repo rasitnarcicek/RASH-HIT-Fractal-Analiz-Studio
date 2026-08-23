@@ -5,11 +5,11 @@ version: "1.0.0"
 date-released: "2026-08-23"
 license: "Apache-2.0"
 repository-code: "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Studio"
-doi: "10.5281/zenodo.21704656"
+doi: "10.5281/zenodo.22063154"
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.21704656"
-    description: "Version DOI for RASH-HIT Fractal Studio"
+    value: "10.5281/zenodo.22063154"
+    description: "Version DOI for RASH-HIT Fractal Studio v1.0.0"
   - type: doi
     value: "10.5281/zenodo.21693694"
     description: "Concept DOI for RASH-HIT Fractal Studio"

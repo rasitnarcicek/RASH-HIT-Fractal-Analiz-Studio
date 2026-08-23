@@ -3,7 +3,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-green.svg)](https://www.python.org/)
 [![Concept DOI](https://img.shields.io/badge/Concept_DOI-10.5281%2Fzenodo.21693694-blue.svg)](https://doi.org/10.5281/zenodo.21693694)
-[![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.21704656-blue.svg)](https://doi.org/10.5281/zenodo.21704656)
+[![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22063154-blue.svg)](https://doi.org/10.5281/zenodo.22063154)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
 
 **RASH-HIT Fractal Studio CLI** is a research-grade, raster-free computational software engine designed for **exact vector geometry box-counting** and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs and architectural patterns.
@@ -147,7 +147,7 @@ Where:
 If you use RASH-HIT Fractal Studio in your research, publications, or thesis, please cite the software using the DOIs below:
 
 - **Concept DOI:** [10.5281/zenodo.21693694](https://doi.org/10.5281/zenodo.21693694)
-- **Version DOI (v1.0.0):** [10.5281/zenodo.21704656](https://doi.org/10.5281/zenodo.21704656)
+- **Version DOI (v1.0.0):** [10.5281/zenodo.22063154](https://doi.org/10.5281/zenodo.22063154)
 - **ORCID:** [0009-0005-3423-255X](https://orcid.org/0009-0005-3423-255X)
 
 ### BibTeX
@@ -158,15 +158,15 @@ If you use RASH-HIT Fractal Studio in your research, publications, or thesis, pl
   year      = {2026},
   version   = {1.0.0},
   publisher = {GitHub},
-  doi       = {10.5281/zenodo.21704656},
-  url       = {https://doi.org/10.5281/zenodo.21704656},
+  doi       = {10.5281/zenodo.22063154},
+  url       = {https://doi.org/10.5281/zenodo.22063154},
   orcid     = {https://orcid.org/0009-0005-3423-255X},
   license   = {Apache-2.0}
 }
 ```
 
 ### APA
-> Narçiçek, M. R. (2026). *RASH-HIT Fractal Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.21704656
+> Narçiçek, M. R. (2026). *RASH-HIT Fractal Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22063154
 
 ### RIS
 ```ris
@@ -176,8 +176,8 @@ TI  - RASH-HIT Fractal Studio CLI: Exact Vector Geometry Box-Counting and Fracta
 PY  - 2026
 ET  - 1.0.0
 PB  - GitHub
-DO  - 10.5281/zenodo.21704656
-UR  - https://doi.org/10.5281/zenodo.21704656
+DO  - 10.5281/zenodo.22063154
+UR  - https://doi.org/10.5281/zenodo.22063154
 ER  - 
 ```
 
