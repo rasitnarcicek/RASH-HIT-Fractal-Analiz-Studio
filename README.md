@@ -1,4 +1,4 @@
-# RASH-HIT Fractal Studio CLI
+# RASH-HIT Fractal Analiz Studio CLI
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-green.svg)](https://www.python.org/)
@@ -8,7 +8,7 @@
 [![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22063154-blue.svg)](https://doi.org/10.5281/zenodo.22063154)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
 
-**RASH-HIT Fractal Studio CLI** is a research-grade, zero-rasterization computational geometry engine engineered for **exact vector box-counting**, **spatial occupancy profiling (fill vs. empty void ratio)**, and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs, architectural drawings, textile patterns, and graphic compositions.
+**RASH-HIT Fractal Analiz Studio CLI** is a research-grade, zero-rasterization computational geometry engine engineered for **exact vector box-counting**, **spatial occupancy profiling (fill vs. empty void ratio)**, and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs, architectural drawings, textile patterns, and graphic compositions.
 
 ---
 
@@ -21,13 +21,13 @@ For over three decades, computational fractal analysis in design and morphology 
 3. **Discretization Corner Clipping:** Fine ornamental strokes, sharp corner vertices, and sub-pixel details smaller than pixel dimensions are merged, blurred, or obliterated.
 
 ### The RASH-HIT Solution
-**RASH-HIT Fractal Studio completely eliminates rasterization artifacts.** It operates natively on continuous vector path geometry in floating-point coordinate space using the **C++ GEOS spatial engine via Shapely 2.0**. Grid cell occupancy is evaluated via continuous point-set topological intersection predicates ($E \cap B_{i,j} \neq \emptyset$), guaranteeing **100% mathematical determinism, zero discretization error, and publication-grade reproducibility**.
+**RASH-HIT Fractal Analiz Studio completely eliminates rasterization artifacts.** It operates natively on continuous vector path geometry in floating-point coordinate space using the **C++ GEOS spatial engine (RASH-HIT Fractal Analiz Engine via Shapely 2.0)**. Grid cell occupancy is evaluated via continuous point-set topological intersection predicates ($E \cap B_{i,j} \neq \emptyset$), guaranteeing **100% mathematical determinism, zero discretization error, and publication-grade reproducibility**.
 
 ---
 
 ## 🏛️ Comprehensive Application Domains
 
-RASH-HIT Fractal Studio serves as a bridge between pure computational geometry and creative design disciplines:
+RASH-HIT Fractal Analiz Studio serves as a bridge between pure computational geometry and creative design disciplines:
 
 ### 1. 🧵 Textile, Fashion & Pattern Design
 - **Jacquard & Woven Structure Porosity:** Quantify the exact spatial density and void-to-fill distribution of woven structures, knitwear repeats, and lace filigree.
@@ -57,7 +57,7 @@ RASH-HIT Fractal Studio serves as a bridge between pure computational geometry a
 
 ## 📊 Analytical Comparison: Exact Vector vs. Raster Box-Counting
 
-| Metric / Capability | Conventional Raster Tools (ImageJ/FracLac) | RASH-HIT Fractal Studio (Exact Vector) |
+| Metric / Capability | Conventional Raster Tools (ImageJ/FracLac) | RASH-HIT Fractal Analiz Studio (Exact Vector) |
 |:---|:---|:---|
 | **Input Representation** | Discrete Bitmap Pixels (PNG/JPG/TIFF) | Continuous Double-Precision Floating Point (SVG) |
 | **Geometry Evaluation** | Pixel counting (Binary 0/1 threshold) | C++ GEOS Topological Predicates (`intersects`) |
@@ -125,7 +125,7 @@ rash-hit-fractal --input input_svgs/16D.svg --levels 7
 **Terminal Output:**
 ```text
 +------------------------------------------------------------------------------+
-|               RASH-HIT FRACTAL STUDIO - ANALYSIS REPORT                      |
+|               RASH-HIT FRACTAL ANALIZ STUDIO - ANALYSIS REPORT               |
 +------------------------------------------------------------------------------+
   Motif Loaded       : 16D (100.00 x 200.00)
   Geometries         : 2 vector elements
@@ -157,7 +157,7 @@ rash-hit-fractal --dir ./input_svgs --levels 5
 
 ## 🎓 Academic Citation
 
-If you use **RASH-HIT Fractal Studio** in your research, thesis, journal articles, or architectural/textile studies, please cite the software using the persistent DOIs below:
+If you use **RASH-HIT Fractal Analiz Studio** in your research, thesis, journal articles, or architectural/textile studies, please cite the software using the persistent DOIs below:
 
 - **Concept DOI:** [10.5281/zenodo.21693694](https://doi.org/10.5281/zenodo.21693694)
 - **Version DOI (v1.0.0):** [10.5281/zenodo.22063154](https://doi.org/10.5281/zenodo.22063154)
@@ -165,9 +165,9 @@ If you use **RASH-HIT Fractal Studio** in your research, thesis, journal article
 
 ### BibTeX
 ```bibtex
-@software{Narcicek_RASH_HIT_Fractal_Studio_CLI_2026,
+@software{Narcicek_RASH_HIT_Fractal_Analiz_Studio_CLI_2026,
   author    = {Nar{\c{c}}i{\c{c}}ek, Mehmet Ra{\s}it},
-  title     = {RASH-HIT Fractal Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine},
+  title     = {RASH-HIT Fractal Analiz Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine},
   year      = {2026},
   version   = {1.0.0},
   publisher = {GitHub},
@@ -179,13 +179,13 @@ If you use **RASH-HIT Fractal Studio** in your research, thesis, journal article
 ```
 
 ### APA
-> Narçiçek, M. R. (2026). *RASH-HIT Fractal Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22063154
+> Narçiçek, M. R. (2026). *RASH-HIT Fractal Analiz Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine* (Version 1.0.0) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22063154
 
 ### RIS
 ```ris
 TY  - COMP
 AU  - Narçiçek, Mehmet Raşit
-TI  - RASH-HIT Fractal Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine
+TI  - RASH-HIT Fractal Analiz Studio CLI: Exact Vector Geometry Box-Counting and Fractal Dimension Engine
 PY  - 2026
 ET  - 1.0.0
 PB  - GitHub
@@ -197,6 +197,9 @@ ER  -
 ---
 
 ## 📜 License & Authorship
+
+Licensed under the [Apache License, Version 2.0](LICENSE).  
+Copyright (c) 2026 Mehmet Raşit Narçiçek. All rights reserved.
 
 Licensed under the [Apache License, Version 2.0](LICENSE).  
 Copyright (c) 2026 Mehmet Raşit Narçiçek. All rights reserved.

@@ -45,7 +45,7 @@ if missing:
 }
 
 function installDependencies(pythonCmd) {
-  console.log('\n📦 [RASH-HIT Fractal Studio] First-time setup: Installing required dependencies...');
+  console.log('\n📦 [RASH-HIT Fractal Analiz Studio] First-time setup: Installing required dependencies...');
   console.log('   Dependencies: ' + REQUIRED_PACKAGES.join(', '));
 
   const pipArgs = ['-m', 'pip', 'install', '--quiet', ...REQUIRED_PACKAGES];
@@ -56,7 +56,7 @@ function installDependencies(pythonCmd) {
     console.error(`   Please run manually: ${pythonCmd} -m pip install -r requirements.txt\n`);
     process.exit(1);
   }
-  console.log('✅ [RASH-HIT Fractal Studio] Dependencies installed successfully.\n');
+  console.log('✅ [RASH-HIT Fractal Analiz Studio] Dependencies installed successfully.\n');
 }
 
 function main() {

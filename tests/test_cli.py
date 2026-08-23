@@ -21,7 +21,7 @@ class TestCLI(unittest.TestCase):
             cwd=str(self.root_dir)
         )
         self.assertEqual(res.returncode, 0)
-        self.assertIn("RASH-HIT Fractal Studio", res.stdout)
+        self.assertIn("RASH-HIT Fractal Analiz Studio", res.stdout)
         self.assertIn("--input", res.stdout)
         self.assertIn("--dir", res.stdout)
 

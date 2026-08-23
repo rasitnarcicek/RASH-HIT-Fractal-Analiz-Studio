@@ -1,6 +1,6 @@
 # Third-Party Notices & Dependencies
 
-RASH-HIT Fractal Studio CLI relies on third-party open-source computational software libraries. This document lists all dependencies, their licenses, and usage context.
+RASH-HIT Fractal Analiz Studio CLI relies on third-party open-source computational software libraries. This document lists all dependencies, their licenses, and usage context.
 
 ---
 

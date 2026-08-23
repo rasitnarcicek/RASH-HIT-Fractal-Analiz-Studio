@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software in your research, please cite it as below."
-title: "RASH-HIT Fractal Studio CLI"
+title: "RASH-HIT Fractal Analiz Studio CLI"
 abstract: "A research-grade, zero-rasterization computational geometry engine for exact vector box-counting, spatial occupancy profiling (fill vs. empty void ratio), and fractal dimension (Db) analysis directly from SVG vector motifs, architectural drawings, and textile patterns using C++ GEOS spatial predicates via Shapely."
 version: "1.0.0"
 date-released: "2026-08-23"
@@ -10,10 +10,10 @@ doi: "10.5281/zenodo.22063154"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.22063154"
-    description: "Version DOI for RASH-HIT Fractal Studio v1.0.0"
+    description: "Version DOI for RASH-HIT Fractal Analiz Studio v1.0.0"
   - type: doi
     value: "10.5281/zenodo.21693694"
-    description: "Concept DOI for RASH-HIT Fractal Studio"
+    description: "Concept DOI for RASH-HIT Fractal Analiz Studio"
 authors:
   - family-names: "Narçiçek"
     given-names: "Mehmet Raşit"

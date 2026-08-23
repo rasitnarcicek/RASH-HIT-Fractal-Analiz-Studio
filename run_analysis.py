@@ -2,7 +2,7 @@
 # Copyright 2026 Mehmet Raşit Narçiçek
 
 """
-RASH-HIT Fractal Studio - Vector Geometry Box-Counting Engine
+RASH-HIT Fractal Analiz Studio - Vector Geometry Box-Counting Engine
 Version: 1.0.0
 """
 
@@ -60,7 +60,7 @@ def process_single_file(input_file: str, levels: int = 7):
     # 5. Output Box-Counting Terminal Report Table (Main Project Design)
     motif_name = input_path.stem
     print("+------------------------------------------------------------------------------+")
-    print("|               RASH-HIT FRACTAL STUDIO - ANALYSIS REPORT                      |")
+    print("|               RASH-HIT FRACTAL ANALIZ STUDIO - ANALYSIS REPORT               |")
     print("+------------------------------------------------------------------------------+")
     print(f"  Motif Loaded       : {motif_name} ({vw:.2f} x {vh:.2f})")
     print(f"  Geometries         : {len(geoms):,} vector elements")
@@ -86,12 +86,12 @@ def process_single_file(input_file: str, levels: int = 7):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RASH-HIT Fractal Studio - Vector Geometry Box-Counting Engine")
+    parser = argparse.ArgumentParser(description="RASH-HIT Fractal Analiz Studio - Vector Geometry Box-Counting Engine")
     _input_group = parser.add_mutually_exclusive_group(required=False)
     _input_group.add_argument("-i", "--input", type=str, help="Input SVG file path")
     _input_group.add_argument("-d", "--dir", type=str, help="Directory path for batch processing all SVG files")
     parser.add_argument("-l", "--levels", type=int, default=7, help="Number of grid levels (default: 7)")
-    parser.add_argument("-v", "--version", action="version", version="RASH-HIT Fractal Studio v1.0.0")
+    parser.add_argument("-v", "--version", action="version", version="RASH-HIT Fractal Analiz Studio v1.0.0")
 
     args = parser.parse_args()
 
