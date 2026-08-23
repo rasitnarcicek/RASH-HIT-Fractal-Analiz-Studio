@@ -2,8 +2,8 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-green.svg)](https://www.python.org/)
-[![PyPI version](https://img.shields.io/pypi/v/rash-hit-fractal-analiz-studio.svg)](https://pypi.org/project/rash-hit-fractal-analiz-studio/)
-[![npm version](https://img.shields.io/npm/v/rash-hit-fractal-analiz-studio.svg)](https://www.npmjs.com/package/rash-hit-fractal-analiz-studio)
+[![PyPI version](https://img.shields.io/pypi/v/rash-hit-fractal-analiz-studio?color=blue)](https://pypi.org/project/rash-hit-fractal-analiz-studio/)
+[![npm version](https://img.shields.io/npm/v/rash-hit-fractal-analiz-studio?color=green)](https://www.npmjs.com/package/rash-hit-fractal-analiz-studio)
 [![Concept DOI](https://img.shields.io/badge/Concept_DOI-10.5281%2Fzenodo.21693694-blue.svg)](https://doi.org/10.5281/zenodo.21693694)
 [![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22063154-blue.svg)](https://doi.org/10.5281/zenodo.22063154)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
