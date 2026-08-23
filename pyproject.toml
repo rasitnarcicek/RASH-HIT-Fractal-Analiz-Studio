@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rash-hit-fractal-studio"
-version = "1.0.1"
+name = "rash-hit-fractal-analiz-studio"
+version = "1.0.0"
 description = "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns."
 readme = "README.md"
 requires-python = ">=3.9"

@@ -33,7 +33,7 @@ class TestCLI(unittest.TestCase):
             cwd=str(self.root_dir)
         )
         self.assertEqual(res.returncode, 0)
-        self.assertIn("1.0.1", res.stdout)
+        self.assertIn("1.0.0", res.stdout)
 
     def test_cli_single_file(self):
         res = subprocess.run(

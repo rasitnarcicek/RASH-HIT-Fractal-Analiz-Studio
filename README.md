@@ -2,8 +2,8 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-green.svg)](https://www.python.org/)
-[![PyPI version](https://img.shields.io/pypi/v/rash-hit-fractal-studio.svg)](https://pypi.org/project/rash-hit-fractal-studio/)
-[![npm version](https://img.shields.io/npm/v/rash-hit-fractal-studio.svg)](https://www.npmjs.com/package/rash-hit-fractal-studio)
+[![PyPI version](https://img.shields.io/pypi/v/rash-hit-fractal-analiz-studio.svg)](https://pypi.org/project/rash-hit-fractal-analiz-studio/)
+[![npm version](https://img.shields.io/npm/v/rash-hit-fractal-analiz-studio.svg)](https://www.npmjs.com/package/rash-hit-fractal-analiz-studio)
 [![Concept DOI](https://img.shields.io/badge/Concept_DOI-10.5281%2Fzenodo.21693694-blue.svg)](https://doi.org/10.5281/zenodo.21693694)
 [![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22063154-blue.svg)](https://doi.org/10.5281/zenodo.22063154)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
@@ -91,17 +91,17 @@ RASH-HIT Fractal Analiz Studio serves as a bridge between pure computational geo
 ### Method 1: Instant Execution via NPX (Zero Setup)
 ```bash
 # Run immediately without manual dependency installation
-npx rash-hit-fractal-studio --input motif.svg --levels 7
+npx rash-hit-fractal-analiz-studio --input motif.svg --levels 7
 
 # Or install globally
-npm install -g rash-hit-fractal-studio
+npm install -g rash-hit-fractal-analiz-studio
 rash-hit-fractal --input motif.svg --levels 7
 ```
 *(All required Python core libraries such as NumPy and Shapely are automatically detected and installed on first run).*
 
 ### Method 2: Install via PyPI
 ```bash
-pip install rash-hit-fractal-studio
+pip install rash-hit-fractal-analiz-studio
 ```
 
 ### Method 3: Install from Source
