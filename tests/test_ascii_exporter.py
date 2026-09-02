@@ -42,8 +42,8 @@ def _small_manifest() -> dict:
 
 class TestBuildOutputFilename(unittest.TestCase):
     def test_format_includes_stem_level_and_full_stamp(self):
-        name = build_output_filename("16D", 5, stamp="2026-09-01_22-56-30")
-        self.assertEqual(name, "16D_L5_2026-09-01_22-56-30.txt")
+        name = build_output_filename("test", 5, stamp="2026-09-01_22-56-30")
+        self.assertEqual(name, "test_L5_2026-09-01_22-56-30.txt")
 
     def test_default_stamp_is_now_seconds(self):
         name = build_output_filename("foo", 9)
@@ -70,14 +70,14 @@ class TestGenerateAsciiFile(unittest.TestCase):
 
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as td:
-            out = Path(td) / "16D_L1_2026-09-01_22-56-30.txt"
-            generate_ascii_file(manifest, motif_stem="16D", levels=1,
+            out = Path(td) / "test_L1_2026-09-01_22-56-30.txt"
+            generate_ascii_file(manifest, motif_stem="test", levels=1,
                                 out_path=out, stamp="2026-09-01_22-56-30")
             text = out.read_text(encoding="utf-8")
 
         self.assertIn(f"RASH-HIT FRACTAL ANALYSIS v{SOFTWARE_VERSION}", text)
         self.assertIn(ENGINE_NAME, text)
-        self.assertIn("Motif     : 16D.svg", text)
+        self.assertIn("Motif     : test.svg", text)
         self.assertIn("Date      : 2026-09-01_22-56-30", text)
         self.assertIn("Levels    : L1", text)
         self.assertIn("Fractal Dimension Db = 0.9997", text)
@@ -107,16 +107,16 @@ class TestGenerateBatchAsciiBook(unittest.TestCase):
         with TemporaryDirectory() as td:
             out = Path(td) / "ascii_book.txt"
             generate_batch_ascii_book(
-                per_motif=[("16D", m1), ("diag", m2)],
+                per_motif=[("test", m1), ("diag", m2)],
                 levels=1, out_path=out, stamp="2026-09-01_22-56-30",
             )
             text = out.read_text(encoding="utf-8")
 
         self.assertIn("BATCH ASCII BOOK", text)
         self.assertIn("MASTER SUMMARY", text)
-        self.assertIn("16D", text)
+        self.assertIn("test", text)
         self.assertIn("diag", text)
-        self.assertIn("MOTIF: 16D.svg", text)
+        self.assertIn("MOTIF: test.svg", text)
         self.assertIn("MOTIF: diag.svg", text)
         self.assertIn("0.9997", text)
         self.assertIn("0.9849", text)

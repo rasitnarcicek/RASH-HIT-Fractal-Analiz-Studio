@@ -27,7 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LAUNCHER = ROOT / "launcher.py"
-SAMPLE_SVG = ROOT / "input_svgs" / "16D.svg"
+SAMPLE_SVG = ROOT / "input_svgs" / "test.svg"
 
 
 class TestLauncherCLI(unittest.TestCase):
@@ -52,7 +52,7 @@ class TestLauncherCLI(unittest.TestCase):
     def test_version(self):
         res = self._run("--version")
         self.assertEqual(res.returncode, 0, res.stderr)
-        self.assertIn("1.2.0", res.stdout)
+        self.assertIn("1.2.1", res.stdout)
         self.assertIn("RASH-HIT", res.stdout)
 
     def test_check(self):

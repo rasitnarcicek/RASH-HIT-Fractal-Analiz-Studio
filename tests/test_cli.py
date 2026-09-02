@@ -11,7 +11,7 @@ class TestCLI(unittest.TestCase):
     def setUp(self):
         self.root_dir = Path(__file__).resolve().parent.parent
         self.script_path = self.root_dir / "run_analysis.py"
-        self.sample_svg = self.root_dir / "input_svgs" / "16D.svg"
+        self.sample_svg = self.root_dir / "input_svgs" / "test.svg"
 
     def test_cli_help(self):
         res = subprocess.run(
@@ -35,7 +35,7 @@ class TestCLI(unittest.TestCase):
             stdin=subprocess.DEVNULL,
         )
         self.assertEqual(res.returncode, 0)
-        self.assertIn("1.2.0", res.stdout)
+        self.assertIn("1.2.1", res.stdout)
 
     def test_cli_single_file(self):
         res = subprocess.run(
@@ -98,7 +98,7 @@ class TestCLI(unittest.TestCase):
         after = set(svg_dir.glob("ascii_book_L3_*.txt"))
         new_books = after - before
         self.assertTrue(new_books, "no new ascii_book_L3_*.txt produced")
-        self.assertIn("16D", res.stdout)
+        self.assertIn("test", res.stdout)
 
 
 if __name__ == "__main__":

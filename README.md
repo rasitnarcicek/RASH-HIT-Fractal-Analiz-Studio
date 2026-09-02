@@ -119,7 +119,7 @@ When installed via `pip` or `npm`, the `rash-hit-fractal` command is available s
 
 ### 1. Analyze a Single SVG Motif
 ```bash
-rash-hit-fractal --input input_svgs/16D.svg --levels 7
+rash-hit-fractal --input input_svgs/test.svg --levels 7
 ```
 
 The single engine measures the contacted line geometry (supercover cell sets on a fixed integer lattice, touch_counts boundary policy) with **only `numpy` as the numerical dependency**:
@@ -133,7 +133,7 @@ The single engine measures the contacted line geometry (supercover cell sets on 
 +------------------------------------------------------------------------------+
 |               RASH-HIT FRACTAL ANALYSIS - ANALYSIS REPORT                |
 +------------------------------------------------------------------------------+
-  Motif Loaded       : 16D (100.00 x 200.00)
+  Motif Loaded       : test (100.00 x 200.00)
   Geometries         : 4 vector elements
   Analysis Engine    : cpu
   Selected Engine    : RASH-HIT Fractal Analysis Engine

@@ -93,7 +93,7 @@ class TestInputDirMutuallyExclusive(unittest.TestCase):
     def test_both_flags_rejected(self):
         cwd = str(Path(__file__).resolve().parent.parent)
         cmd = [sys.executable, "run_analysis.py",
-               "--input", "input_svgs/16D.svg", "--dir", "input_svgs"]
+               "--input", "input_svgs/test.svg", "--dir", "input_svgs"]
         res = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
         self.assertNotEqual(res.returncode, 0,
             f"Expected non-zero exit; stdout={res.stdout!r} stderr={res.stderr!r}")

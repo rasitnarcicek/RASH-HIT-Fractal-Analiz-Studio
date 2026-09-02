@@ -10,7 +10,7 @@ içermez. Ana proje kalıbından sadeleştirilmiş, gerekli adımlar:
   2. Pip kurulumu + requirements.txt
   3. Editable install: ``pip install -e .`` (src/ layout)
   4. src/ import doğrulama (sys.path.insert ile)
-  5. Bilimsel hesap doğrulama: 16D.svg üzerinde L3 hesap
+  5. Bilimsel hesap doğrulama: test.svg üzerinde L3 hesap
 """
 from __future__ import annotations
 
@@ -227,14 +227,14 @@ def validate_src_imports() -> bool:
 
 
 def run_preflight() -> bool:
-    print(color("[4/5] Pre-Flight Calculation Test (16D.svg, L=3)...", "1"))
+    print(color("[4/5] Pre-Flight Calculation Test (test.svg, L=3)...", "1"))
     code = (
         "import sys; "
         "sys.path.insert(0, 'src'); "
         "from src.backend.geometric_contact_pipeline import run_geometric_contact; "
         "from pathlib import Path; "
-        "m = run_geometric_contact(Path('input_svgs/16D.svg'), max_level=3); "
-        "print(f'  * 16D.svg: Db = {m[\"fractal_dimension\"]:.4f}, R² = {m[\"r_squared\"]:.4f}, cells = {m[\"segment_count\"]}')"
+        "m = run_geometric_contact(Path('input_svgs/test.svg'), max_level=3); "
+        "print(f'  * test.svg: Db = {m[\"fractal_dimension\"]:.4f}, R² = {m[\"r_squared\"]:.4f}, cells = {m[\"segment_count\"]}')"
     )
     res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
     if res.returncode != 0:
@@ -294,7 +294,7 @@ def main() -> int:
         "  -> Manuel : .venv\\Scripts\\python.exe launcher.py\n"
         "\n"
         "CLI dogrudan mod:\n"
-        "  python launcher.py --input input_svgs/16D.svg -l 3\n"
+        "  python launcher.py --input input_svgs/test.svg -l 3\n"
         "  python launcher.py --dir  input_svgs/             -l 4\n"
         "  python launcher.py --version\n"
         "  python launcher.py --check\n"
