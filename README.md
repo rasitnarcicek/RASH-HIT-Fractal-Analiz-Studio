@@ -1,14 +1,14 @@
-# RASH-HIT Fractal Analiz Studio
+# RASH-HIT Fractal Analysis
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-green.svg)](https://www.python.org/)
-[![PyPI version](https://img.shields.io/pypi/v/rash-hit-fractal-analiz-studio?color=blue)](https://pypi.org/project/rash-hit-fractal-analiz-studio/)
-[![npm version](https://img.shields.io/npm/v/rash-hit-fractal-analiz-studio?color=green)](https://www.npmjs.com/package/rash-hit-fractal-analiz-studio)
+[![PyPI version](https://img.shields.io/pypi/v/rash-hit-fractal-analysis?color=blue)](https://pypi.org/project/rash-hit-fractal-analysis/)
+[![npm version](https://img.shields.io/npm/v/rash-hit-fractal-analysis?color=green)](https://www.npmjs.com/package/rash-hit-fractal-analysis)
 [![Concept DOI](https://img.shields.io/badge/Concept_DOI-10.5281%2Fzenodo.22069152-blue.svg)](https://doi.org/10.5281/zenodo.22069152)
 [![Version DOI](https://img.shields.io/badge/Version_DOI-10.5281%2Fzenodo.22069941-blue.svg)](https://doi.org/10.5281/zenodo.22069941)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--3423--255X-green.svg)](https://orcid.org/0009-0005-3423-255X)
 
-**RASH-HIT Fractal Analiz Studio** is a research-grade, zero-rasterization computational geometry engine engineered for **exact vector box-counting**, **spatial occupancy profiling (fill vs. empty void ratio)**, and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs, architectural drawings, textile patterns, and graphic compositions.
+**RASH-HIT Fractal Analysis** is a research-grade, zero-rasterization computational geometry engine engineered for **exact vector box-counting**, **spatial occupancy profiling (fill vs. empty void ratio)**, and **fractal dimension ($D_B$)** analysis directly from Scalable Vector Graphics (SVG) vector motifs, architectural drawings, textile patterns, and graphic compositions.
 
 ---
 
@@ -21,13 +21,13 @@ For over three decades, computational fractal analysis in design and morphology 
 3. **Discretization Corner Clipping:** Fine ornamental strokes, sharp corner vertices, and sub-pixel details smaller than pixel dimensions are merged, blurred, or obliterated.
 
 ### The RASH-HIT Solution
-**RASH-HIT Fractal Analiz Studio completely eliminates rasterization artifacts.** It operates natively on continuous vector path geometry in floating-point coordinate space using the **C++ GEOS spatial engine (RASH-HIT Fractal Analiz Engine via Shapely 2.0)**. Grid cell occupancy is evaluated via continuous point-set topological intersection predicates ($E \cap B_{i,j} \neq \emptyset$), guaranteeing **100% mathematical determinism, zero discretization error, and publication-grade reproducibility**.
+**RASH-HIT Fractal Analysis completely eliminates rasterization artifacts.** It operates natively on continuous vector path geometry: SVG shapes are flattened to exact line segments and measured as **supercover cell sets on a fixed-point integer lattice** (pure NumPy engine, `geometric-contact` semantics). Grid cell occupancy is evaluated via exact Liang-Barsky closed-box segment intersection (touch_counts boundary policy: interior, edge, and corner contacts all count), guaranteeing **100% mathematical determinism, zero discretization error, and publication-grade reproducibility** — with zero Shapely/GEOS dependency.
 
 ---
 
 ## 🏛️ Comprehensive Application Domains
 
-RASH-HIT Fractal Analiz Studio serves as a bridge between pure computational geometry and creative design disciplines:
+RASH-HIT Fractal Analysis serves as a bridge between pure computational geometry and creative design disciplines:
 
 ### 1. 🧵 Textile, Fashion & Pattern Design
 - **Jacquard & Woven Structure Porosity:** Quantify the exact spatial density and void-to-fill distribution of woven structures, knitwear repeats, and lace filigree.
@@ -57,24 +57,24 @@ RASH-HIT Fractal Analiz Studio serves as a bridge between pure computational geo
 
 ## 📊 Analytical Comparison: Exact Vector vs. Raster Box-Counting
 
-| Metric / Capability | Conventional Raster Tools (ImageJ/FracLac) | RASH-HIT Fractal Analiz Studio (Exact Vector) |
+| Metric / Capability | Conventional Raster Tools (ImageJ/FracLac) | RASH-HIT Fractal Analysis (Exact Vector) |
 |:---|:---|:---|
 | **Input Representation** | Discrete Bitmap Pixels (PNG/JPG/TIFF) | Continuous Double-Precision Floating Point (SVG) |
-| **Geometry Evaluation** | Pixel counting (Binary 0/1 threshold) | C++ GEOS Topological Predicates (`intersects`) |
-| **DPI / Resolution Dependency** | ⚠️ High (Results shift with image size/DPI) | 🟢 **Zero** (Scale-invariant exact geometry) |
+| **Geometry Evaluation** | Pixel counting (Binary 0/1 threshold) | Exact supercover cell sets on a fixed-point int64 lattice (pure NumPy, Liang-Barsky) |
+| **DPI / Resolution Dependency** | ⚠️ High (Results shift with image size/DPI) | 🟢 **Zero** (Scale-invariant exact lattice anchored at the viewBox origin) |
 | **Anti-Aliasing Artifacts** | ⚠️ Severe (Blurred edges distort boundary counts) | 🟢 **None** (Evaluated as true continuous boundaries) |
-| **Stroke Width Accuracy** | ⚠️ Subject to pixel round-off error | 🟢 **Exact** (Converts strokes to precise buffer polygons) |
+| **Stroke Width Accuracy** | ⚠️ Subject to pixel round-off error | 🟢 **Exact** (Centerline contact measured directly on the lattice) |
 | **Aspect Ratio Handling** | Often square-padded, distorting non-square ratios | 🟢 **Adaptive** (Aspect-ratio-aware grid planning) |
-| **Execution Performance** | Slower on large images (O(N*M) pixel scan) | 🟢 **Ultra-fast** (Hierarchical quadtree pruning) |
+| **Execution Performance** | Slower on large images (O(N*M) pixel scan) | 🟢 **Ultra-fast** (vectorized NumPy; L9 in ~5 ms, scales cleanly to L11) |
 | **Reproducibility** | Depends on export settings and binarizer threshold | 🟢 **100% Deterministic & Scientifically Exact** |
 
 ---
 
 ## ⚡ Core Architecture & Engineering
 
-- **Exact Vector Intersection Engine:** Powered by C++ GEOS / Shapely 2.0 with spatial indexing (`STRtree`) and strict point-set topological testing.
+- **Single Pure NumPy Engine (v1.2.0):** The **supercover segment engine** measures the contacted line geometry of an SVG — every boundary the renderer draws — as exact supercover cell sets on a FIXED_ORIGIN integer lattice (fixed-point int64 coordinates), with exact Liang-Barsky closed-box intersection (touch_counts boundary policy: interior, edge, and corner contacts all count). Validated against hand-derived ground-truth cell sets; **zero Shapely/GEOS dependency** (v1.x's GEOS area engine was removed after L9 benchmarking showed the pure NumPy engine 203x faster at deep levels with identical exactness).
 - **Aspect-Ratio-Aware Multi-Level Grid Planning:** Automatically adapts grid cell dimensions to arbitrary SVG viewbox dimensions ($AR = W/H$) with power-of-two resolution doubling across levels ($L_1 \dots L_N$).
-- **Hierarchical Quadtree Pruning:** Automatically skips empty child cells based on parent occupancy, delivering sub-millisecond execution speeds even at deep resolution levels.
+- **Vectorized Deep-Level Scaling:** Fixed-point int64 lattice arithmetic keeps deep levels (L9–L11) in milliseconds where per-cell predicate engines spend seconds.
 - **Comprehensive SVG Specification Support:**
   - Standard shapes: `<rect>`, `<circle>`, `<ellipse>`, `<line>`, `<polyline>`, `<polygon>`, and `<path>` (Cubic/Quadratic Bézier curves, elliptical arcs).
   - 2D affine transformation matrices: `matrix()`, `translate()`, `scale()`, `rotate()`, `skewX()`, `skewY()`.
@@ -91,23 +91,23 @@ RASH-HIT Fractal Analiz Studio serves as a bridge between pure computational geo
 ### Method 1: Instant Execution via NPX (Zero Setup)
 ```bash
 # Run immediately without manual dependency installation
-npx rash-hit-fractal-analiz-studio --input motif.svg --levels 7
+npx rash-hit-fractal-analysis --input motif.svg --levels 7
 
 # Or install globally
-npm install -g rash-hit-fractal-analiz-studio
+npm install -g rash-hit-fractal-analysis
 rash-hit-fractal --input motif.svg --levels 7
 ```
-*(All required Python core libraries such as NumPy and Shapely are automatically detected and installed on first run).*
+*(All required Python core libraries such as NumPy, defusedxml, and tinycss2 are automatically detected and installed on first run).*
 
 ### Method 2: Install via PyPI
 ```bash
-pip install rash-hit-fractal-analiz-studio
+pip install rash-hit-fractal-analysis
 ```
 
 ### Method 3: Install from Source
 ```bash
-git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio.git
-cd RASH-HIT-Fractal-Analiz-Studio
+git clone https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analysis.git
+cd RASH-HIT-Fractal-Analysis
 pip install -e .
 ```
 
@@ -122,29 +122,35 @@ When installed via `pip` or `npm`, the `rash-hit-fractal` command is available s
 rash-hit-fractal --input input_svgs/16D.svg --levels 7
 ```
 
+The single engine measures the contacted line geometry (supercover cell sets on a fixed integer lattice, touch_counts boundary policy) with **only `numpy` as the numerical dependency**:
+
+| Measures | Engine | Dependencies |
+|:---|:---|:---|
+| Line segments (fill boundaries + stroke centerlines) as supercover cell sets on a fixed integer lattice | Pure NumPy (fixed-point int64, Liang-Barsky) | `numpy` (+ `defusedxml`/`tinycss2` for loader security) |
+
 **Terminal Output:**
 ```text
 +------------------------------------------------------------------------------+
-|               RASH-HIT FRACTAL ANALIZ STUDIO - ANALYSIS REPORT               |
+|               RASH-HIT FRACTAL ANALYSIS - ANALYSIS REPORT                |
 +------------------------------------------------------------------------------+
   Motif Loaded       : 16D (100.00 x 200.00)
-  Geometries         : 2 vector elements
+  Geometries         : 4 vector elements
   Analysis Engine    : cpu
-  Selected Engine    : CPU Exact Vector Geometry Engine (Shapely/GEOS)
+  Selected Engine    : RASH-HIT Fractal Analysis Engine
 +------------------------------------------------------------------------------+
 | Level | Grid     | Total Cells | Filled Cells | Empty Cells | Occupancy % | Time ms  |
 +-------+----------+-------------+--------------+-------------+-------------+----------+
-|  L01  | 4x8      |          32 |           32 |           0 |     100.00% |     0.32 |
-|  L02  | 8x16     |         128 |          128 |           0 |     100.00% |     0.24 |
-|  L03  | 16x32    |         512 |          420 |          92 |      82.03% |     0.40 |
-|  L04  | 32x64    |       2,048 |        1,508 |         540 |      73.63% |     1.65 |
-|  L05  | 64x128   |       8,192 |        6,032 |       2,160 |      73.63% |     7.09 |
-|  L06  | 128x256  |      32,768 |       23,744 |       9,024 |      72.46% |    25.14 |
-|  L07  | 256x512  |     131,072 |       93,888 |      37,184 |      71.63% |    94.80 |
+|  L01  | 4x8      |          32 |           20 |          12 |      62.50% |     0.00 |
+|  L02  | 8x16     |         128 |           44 |          84 |      34.38% |     0.00 |
+|  L03  | 16x32    |         512 |           84 |         428 |      16.41% |     0.00 |
+|  L04  | 32x64    |       2,048 |          164 |       1,884 |       8.01% |     0.00 |
+|  L05  | 64x128   |       8,192 |          332 |       7,860 |       4.05% |     0.00 |
+|  L06  | 128x256  |      32,768 |          668 |      32,100 |       2.04% |     0.00 |
+|  L07  | 256x512  |     131,072 |        1,332 |     129,740 |       1.02% |     0.00 |
 +-------+----------+-------------+--------------+-------------+-------------+----------+
-  [RESULT] Box-Counting Fractal Dimension Db = 1.8675
-  [RESULT] Linear Regression Fit R2           = 0.9993
-  [RESULT] Total Execution Time               = 129.64 ms
+  [RESULT] Box-Counting Fractal Dimension Db = 0.9997
+  [RESULT] Linear Regression Fit R2           = 0.9998
+  [RESULT] Total Execution Time               = 21.10 ms
 +------------------------------------------------------------------------------+
 ```
 
@@ -157,17 +163,17 @@ rash-hit-fractal --dir ./input_svgs --levels 5
 
 ## 🎓 Academic Citation
 
-If you use **RASH-HIT Fractal Analiz Studio** in your research, thesis, journal articles, or architectural/textile studies, please cite the software using the persistent DOIs below:
+If you use **RASH-HIT Fractal Analysis** in your research, thesis, journal articles, or architectural/textile studies, please cite the software using the persistent DOIs below:
 
 - **Concept DOI:** [10.5281/zenodo.22069152](https://doi.org/10.5281/zenodo.22069152)
-- **Version DOI (v1.0.1):** [10.5281/zenodo.22069941](https://doi.org/10.5281/zenodo.22069941)
+- **Version DOI (v1.0.1):** [10.5281/zenodo.22069941](https://doi.org/10.5281/zenodo.22069941) — v1.1.0 DOI will be minted on release (concept DOI always resolves to the latest version)
 - **Author ORCID:** [0009-0005-3423-255X](https://orcid.org/0009-0005-3423-255X)
 
 ### BibTeX
 ```bibtex
-@software{Narcicek_RASH_HIT_Fractal_Analiz_Studio_2026,
+@software{Narcicek_RASH_HIT_Fractal_Analysis_2026,
   author    = {Nar{\c{c}}i{\c{c}}ek, Mehmet Ra{\s}it},
-  title     = {RASH-HIT Fractal Analiz Studio},
+  title     = {RASH-HIT Fractal Analysis},
   year      = {2026},
   version   = {1.0.1},
   publisher = {GitHub},
@@ -179,13 +185,13 @@ If you use **RASH-HIT Fractal Analiz Studio** in your research, thesis, journal 
 ```
 
 ### APA
-> Narçiçek, M. R. (2026). *RASH-HIT Fractal Analiz Studio* (Version 1.0.1) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22069941
+> Narçiçek, M. R. (2026). *RASH-HIT Fractal Analysis* (Version 1.0.1) [Computer software]. GitHub. https://doi.org/10.5281/zenodo.22069941
 
 ### RIS
 ```ris
 TY  - COMP
 AU  - Narçiçek, Mehmet Raşit
-TI  - RASH-HIT Fractal Analiz Studio
+TI  - RASH-HIT Fractal Analysis
 PY  - 2026
 ET  - 1.0.1
 PB  - GitHub

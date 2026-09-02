@@ -6,9 +6,9 @@
 import math
 import unittest
 
-from backend.fractal_analyzer import compute_fractal_dimension
-from backend.grid_planner import GridLevel, GridPlan, create_grid_plan
-from backend.intersection_cpu import CPULevelResult
+from src.backend.fractal_analyzer import compute_fractal_dimension
+from src.backend.grid_planner import GridLevel, GridPlan, create_grid_plan
+from src.backend.intersection_cpu import CPULevelResult
 
 
 class TestGridLevel(unittest.TestCase):

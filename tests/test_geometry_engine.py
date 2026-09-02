@@ -8,7 +8,7 @@ import unittest
 
 import numpy as np
 
-from backend.geometry_engine import (
+from src.backend.geometry_engine import (
     ParsedGeometry,
     extract_node_geometries,
     parse_svg_path,
@@ -18,7 +18,7 @@ from backend.geometry_engine import (
     sample_quadratic_bezier,
     transform_points,
 )
-from backend.svg_loader import SVGNode
+from src.backend.svg_loader import SVGNode
 
 
 def node(tag, attribs, styles=None):
@@ -185,21 +185,21 @@ class TestExtractNodeGeometries(unittest.TestCase):
         geoms = extract_node_geometries(node('rect', {'x': '0', 'y': '0', 'width': '10', 'height': '4'}), [])
         self.assertEqual(len(geoms), 1)
         self.assertEqual(geoms[0].geom_type, 'fill')
-        self.assertAlmostEqual(geoms[0].shapely_obj.area, 40.0)
+        self.assertAlmostEqual(geoms[0].area, 40.0)
 
     def test_zero_size_rect_yields_nothing(self):
         self.assertEqual(extract_node_geometries(node('rect', {'width': '0', 'height': '5'}), []), [])
 
     def test_circle_area_approximates_pi_r_squared(self):
         geoms = extract_node_geometries(node('circle', {'cx': '0', 'cy': '0', 'r': '10'}), [])
-        self.assertAlmostEqual(geoms[0].shapely_obj.area, math.pi * 100, delta=5.0)
+        self.assertAlmostEqual(geoms[0].area, math.pi * 100, delta=5.0)
 
     def test_zero_radius_circle_yields_nothing(self):
         self.assertEqual(extract_node_geometries(node('circle', {'r': '0'}), []), [])
 
     def test_ellipse_bounds(self):
         geoms = extract_node_geometries(node('ellipse', {'cx': '0', 'cy': '0', 'rx': '10', 'ry': '5'}), [])
-        xmin, ymin, xmax, ymax = geoms[0].shapely_obj.bounds
+        xmin, ymin, xmax, ymax = geoms[0].bounds
         self.assertAlmostEqual(xmax - xmin, 20.0, delta=0.5)
         self.assertAlmostEqual(ymax - ymin, 10.0, delta=0.5)
 
@@ -212,7 +212,7 @@ class TestExtractNodeGeometries(unittest.TestCase):
 
     def test_polygon_is_closed_automatically(self):
         geoms = extract_node_geometries(node('polygon', {'points': '0,0 10,0 10,10'}), [])
-        self.assertAlmostEqual(geoms[0].shapely_obj.area, 50.0)
+        self.assertAlmostEqual(geoms[0].area, 50.0)
 
     def test_polyline_with_single_point_yields_nothing(self):
         self.assertEqual(extract_node_geometries(node('polyline', {'points': '1,1'}), []), [])
@@ -226,29 +226,32 @@ class TestExtractNodeGeometries(unittest.TestCase):
         geoms = extract_node_geometries(n, ['scale(2)', 'translate(1,1)'])
         fill = next(g for g in geoms if g.geom_type == 'fill')
         stroke = next(g for g in geoms if g.geom_type == 'stroke')
-        self.assertAlmostEqual(fill.shapely_obj.area, 400.0)
-        self.assertAlmostEqual(fill.shapely_obj.bounds[0], 2.0)
+        self.assertAlmostEqual(fill.area, 400.0)
+        self.assertAlmostEqual(fill.bounds[0], 2.0)
         self.assertAlmostEqual(stroke.stroke_width, 4.0)
 
-    def test_evenodd_fill_rule_creates_hole(self):
+    def test_evenodd_fill_rule_emits_all_boundary_rings(self):
         d = 'M 0 0 L 10 0 L 10 10 L 0 10 Z M 3 3 L 7 3 L 7 7 L 3 7 Z'
         n = node('path', {'d': d}, styles={'fill': 'black', 'fill-rule': 'evenodd'})
         geoms = extract_node_geometries(n, [])
-        self.assertAlmostEqual(geoms[0].shapely_obj.area, 100.0 - 16.0)
+        # geometric-contact measures drawn boundaries: outer + hole contour both
+        # emit segments (100 + 16 = sum of |ring areas|).
+        self.assertAlmostEqual(geoms[0].area, 100.0 + 16.0)
 
-    def test_nonzero_fill_rule_preserves_holes(self):
+    def test_nonzero_fill_rule_emits_all_boundary_rings(self):
         d = 'M 0 0 L 10 0 L 10 10 L 0 10 Z M 3 3 L 7 3 L 7 7 L 3 7 Z'
         n = node('path', {'d': d}, styles={'fill': 'black'})
         geoms = extract_node_geometries(n, [])
-        self.assertAlmostEqual(geoms[0].shapely_obj.area, 100.0 - 16.0)
+        self.assertAlmostEqual(geoms[0].area, 100.0 + 16.0)
 
-    def test_self_intersecting_polygon_is_repaired(self):
+    def test_self_intersecting_polygon_segments_are_finite(self):
         n = node('path', {'d': 'M 0 0 L 10 10 L 10 0 L 0 10 Z'}, styles={'fill': 'black'})
         geoms = extract_node_geometries(n, [])
-        self.assertTrue(geoms[0].shapely_obj.is_valid)
+        self.assertTrue(geoms[0].is_valid())
 
     def test_parsed_geometry_bounds_default_for_empty_object(self):
         self.assertEqual(ParsedGeometry('fill', None).bounds, (0, 0, 0, 0))
+        self.assertEqual(ParsedGeometry('fill', None).area, 0.0)
 
 
 if __name__ == '__main__':

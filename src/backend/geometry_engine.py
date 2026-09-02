@@ -4,18 +4,17 @@
 """
 geometry_engine.py — SVG Geometry Parser, Curve Flattening & 2D Matrix Transform Engine.
 Parses path data (M, L, H, V, C, S, Q, T, A, Z), rect, circle, ellipse, line, polyline, polygon.
-Applies 2D affine transformation matrices and builds Shapely geometries for exact analysis.
+Applies 2D affine transformation matrices and emits pure line-segment lists for the
+supercover engine (v1.2.0: no Shapely/GEOS dependency anywhere in the pipeline).
 """
 
 from __future__ import annotations
 import math
 import re
-from typing import List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional, Iterable
 import numpy as np
-from shapely.geometry import Polygon, LineString
-from shapely.ops import unary_union
 
-from backend.svg_loader import SVGNode
+from src.backend.svg_loader import SVGNode
 
 
 # ============================================================================
@@ -417,19 +416,141 @@ def parse_svg_path(d_str: str, tolerance_steps: int = 16) -> List[List[Tuple[flo
 # ============================================================================
 
 class ParsedGeometry:
-    """Container for a resolved Shapely geometry object (Fill area or Stroke line)."""
+    """Container for a resolved geometry in pure segment representation.
+
+    v1.2.0: the engine measures line geometry directly (geometric-contact
+    semantics), so a geometry is its list of transformed subpaths. ``bounds``
+    is computed from the vertices with NumPy — no external geometry library.
+    """
     def __init__(
         self,
         geom_type: str,  # 'fill' or 'stroke'
-        shapely_obj: Any,
+        segments: List[Tuple[float, float, float, float]],
         stroke_width: float = 0.0,
         tag: str = 'path'
     ):
         self.geom_type = geom_type
-        self.shapely_obj = shapely_obj
+        self.segments = segments
         self.stroke_width = stroke_width
         self.tag = tag
-        self.bounds = shapely_obj.bounds if shapely_obj and not shapely_obj.is_empty else (0, 0, 0, 0)
+        self.bounds = _segments_bounds(segments)
+
+    @property
+    def area(self) -> float:
+        """Total signed-magnitude ring area of the geometry's closed subpaths.
+
+        Filled shapes resolve to the sum of |shoelace areas| of their closed
+        subpaths (hole deductions under evenodd/nonzero are NOT applied —
+        geometric-contact measures the drawn boundary set, and the boundary of
+        a hole is drawn exactly like the boundary of a solid).
+        """
+        return _shoelace_area_of_segments(self.segments)
+
+    def is_valid(self) -> bool:
+        """True when every segment has finite endpoints and positive length."""
+        return all(
+            math.isfinite(x0) and math.isfinite(y0) and math.isfinite(x1) and math.isfinite(y1)
+            and (x0, y0) != (x1, y1)
+            for x0, y0, x1, y1 in self.segments
+        )
+
+
+def _segments_bounds(segments: Iterable[Tuple[float, float, float, float]]) -> Tuple[float, float, float, float]:
+    """Axis-aligned bounding box (xmin, ymin, xmax, ymax) of a segment list."""
+    if not segments:
+        return (0.0, 0.0, 0.0, 0.0)
+    arr = np.asarray(list(segments), dtype=np.float64).reshape(-1, 4)
+    xs = np.concatenate([arr[:, 0], arr[:, 2]])
+    ys = np.concatenate([arr[:, 1], arr[:, 3]])
+    finite_x = xs[np.isfinite(xs)]
+    finite_y = ys[np.isfinite(ys)]
+    if finite_x.size == 0 or finite_y.size == 0:
+        return (0.0, 0.0, 0.0, 0.0)
+    return (float(finite_x.min()), float(finite_y.min()), float(finite_x.max()), float(finite_y.max()))
+
+
+def _shoelace_area_of_segments(segments: List[Tuple[float, float, float, float]]) -> float:
+    """Sum of |signed shoelace areas| over closed rings embedded in a segment list.
+
+    Chains consecutive segments whose endpoints coincide; each closed chain
+    (first point == last point) is treated as one ring. Open chains contribute 0
+    (a stroked open path has no interior area).
+    """
+    if not segments:
+        return 0.0
+    # Build adjacency: endpoint -> list of (segment index, which_end).
+    # Endpoints are clustered with a tolerance so curve-sampled closures
+    # (float drift ~1e-16) still chain.
+    from collections import defaultdict
+    adjacency: dict = defaultdict(list)
+    cluster_ids: Dict[Tuple[float, float], Tuple[float, float]] = {}
+    clusters: List[Tuple[float, float]] = []
+
+    def _cluster_key(pt: Tuple[float, float]) -> Tuple[float, float]:
+        for c in clusters:
+            if _points_coincide(pt, c):
+                cluster_ids[pt] = c
+                return c
+        clusters.append(pt)
+        cluster_ids[pt] = pt
+        return pt
+
+    for i, (x0, y0, x1, y1) in enumerate(segments):
+        k0 = _cluster_key((x0, y0))
+        k1 = _cluster_key((x1, y1))
+        adjacency[k0].append((i, 0))
+        adjacency[k1].append((i, 1))
+
+    visited = [False] * len(segments)
+    total_abs_area = 0.0
+
+    for start in range(len(segments)):
+        if visited[start]:
+            continue
+        # Walk the chain in both directions until it closes or ends
+        chain_points: List[Tuple[float, float]] = []
+        seg_idx = start
+        # Orientation pass: collect points following segment direction
+        x0, y0, x1, y1 = segments[seg_idx]
+        chain_points = [(x0, y0), (x1, y1)]
+        visited[seg_idx] = True
+        # Extend forward from (x1, y1)
+        while True:
+            tail_key = _cluster_key(chain_points[-1])
+            nexts = [(i, e) for (i, e) in adjacency[tail_key] if not visited[i]]
+            if not nexts:
+                break
+            i, e = nexts[0]
+            visited[i] = True
+            sx0, sy0, sx1, sy1 = segments[i]
+            if e == 0:  # tail matches this segment's start
+                chain_points.append((sx1, sy1))
+            else:       # tail matches this segment's end; traverse backwards
+                chain_points.append((sx0, sy0))
+        # Extend backward from (x0, y0)
+        while True:
+            head_key = _cluster_key(chain_points[0])
+            prevs = [(i, e) for (i, e) in adjacency[head_key] if not visited[i]]
+            if not prevs:
+                break
+            i, e = prevs[0]
+            visited[i] = True
+            sx0, sy0, sx1, sy1 = segments[i]
+            if e == 0:  # head matches this segment's start; prepend its far end
+                chain_points.insert(0, (sx1, sy1))
+            else:       # head matches this segment's end; prepend its start
+                chain_points.insert(0, (sx0, sy0))
+        if len(chain_points) >= 4 and _points_coincide(chain_points[0], chain_points[-1]):
+            pts_arr = np.asarray(chain_points, dtype=np.float64)
+            xs_, ys_ = pts_arr[:, 0], pts_arr[:, 1]
+            signed2 = float(np.dot(xs_[:-1], ys_[1:]) - np.dot(xs_[1:], ys_[:-1]))
+            total_abs_area += abs(signed2) / 2.0
+    return total_abs_area
+
+
+def _points_coincide(p: Tuple[float, float], q: Tuple[float, float], abs_tol: float = 1e-9) -> bool:
+    """Exact-or-near endpoint equality (curve sampling closure has ~1e-16 float drift)."""
+    return abs(p[0] - q[0]) <= abs_tol and abs(p[1] - q[1]) <= abs_tol
 
 
 def extract_node_geometries(
@@ -439,6 +560,11 @@ def extract_node_geometries(
 ) -> List[ParsedGeometry]:
     """
     Parses an SVGNode into one or more transformed ParsedGeometry objects (fill & stroke).
+
+    v1.2.0 semantics: a geometry is the set of transformed centerline segments of
+    the rendered element. For filled shapes the fill boundary segments are
+    emitted (geometric-contact measures the contacted line geometry: every
+    boundary the renderer draws — outer contour and hole contours alike).
     """
     num_steps = 24 if tolerance == 'high' else (12 if tolerance == 'medium' else 6)
 
@@ -507,45 +633,28 @@ def extract_node_geometries(
     scale_factor = math.sqrt(det_m) if det_m > 0 else 1.0
     effective_stroke_width = node.stroke_width * scale_factor
 
-    # Build Fill Geometry (Preserves fill-rule evenodd/nonzero and inner compound path holes)
-    if node.has_fill:
-        polygons = []
-        for pts in transformed_subpaths:
-            if len(pts) >= 3:
-                poly = Polygon(pts)
-                if not poly.is_valid:
-                    poly = poly.buffer(0)
-                if not poly.is_empty:
-                    polygons.append(poly)
-        if polygons:
-            fill_rule = node.styles.get('fill-rule', node.attribs.get('fill-rule', 'nonzero')).lower().strip()
-            if len(polygons) == 1:
-                fill_obj = polygons[0]
-            else:
-                polygons.sort(key=lambda p: p.area, reverse=True)
-                fill_obj = polygons[0]
-                if fill_rule == 'evenodd':
-                    for p in polygons[1:]:
-                        fill_obj = fill_obj.symmetric_difference(p)
-                else:  # nonzero fill rule: nested interior subpaths are treated as holes
-                    for p in polygons[1:]:
-                        if fill_obj.contains(p.representative_point()):
-                            fill_obj = fill_obj.difference(p)
-                        else:
-                            fill_obj = fill_obj.union(p)
-            if fill_obj and not fill_obj.is_empty:
-                geoms.append(ParsedGeometry('fill', fill_obj, tag=tag))
+    def _to_segments(subs: List[List[Tuple[float, float]]]) -> List[Tuple[float, float, float, float]]:
+        out: List[Tuple[float, float, float, float]] = []
+        for pts in subs:
+            for k in range(len(pts) - 1):
+                p0, p1 = pts[k], pts[k + 1]
+                if math.isfinite(p0[0]) and math.isfinite(p0[1]) and math.isfinite(p1[0]) and math.isfinite(p1[1]):
+                    if (p0[0], p0[1]) != (p1[0], p1[1]):
+                        out.append((float(p0[0]), float(p0[1]), float(p1[0]), float(p1[1])))
+        return out
 
-    # Build Stroke Geometry
+    # Fill geometry: the boundary segments of the filled shape (all subpath
+    # rings — outer contours and hole contours — are drawn boundaries).
+    if node.has_fill:
+        fill_segments = _to_segments(transformed_subpaths)
+        if fill_segments:
+            geoms.append(ParsedGeometry('fill', fill_segments, tag=tag))
+
+    # Stroke geometry: the centerline segments of the stroked outline.
     if node.has_stroke:
-        lines = []
-        for pts in transformed_subpaths:
-            if len(pts) >= 2:
-                line = LineString(pts)
-                if not line.is_empty:
-                    lines.append(line)
-        if lines:
-            stroke_obj = unary_union(lines)
-            geoms.append(ParsedGeometry('stroke', stroke_obj, stroke_width=effective_stroke_width, tag=tag))
+        stroke_segments = _to_segments(transformed_subpaths)
+        if stroke_segments:
+            geoms.append(ParsedGeometry('stroke', stroke_segments,
+                                        stroke_width=effective_stroke_width, tag=tag))
 
     return geoms

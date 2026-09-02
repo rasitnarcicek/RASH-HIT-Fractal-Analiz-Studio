@@ -22,7 +22,7 @@ class TestFillOpacityVisibility(unittest.TestCase):
     """Bulgu 8: fill-opacity / stroke-opacity per-channel alpha."""
 
     def _node(self, styles: dict):
-        from backend.svg_loader import SVGNode
+        from src.backend.svg_loader import SVGNode
         return SVGNode(tag="path", attribs={}, styles=styles, transform_str="")
 
     def test_fill_opacity_zero_makes_invisible(self):
@@ -75,7 +75,7 @@ class TestLoaderWarnings(unittest.TestCase):
             f.write(svg_content)
             tmp = f.name
         try:
-            from backend.svg_loader import SVGLoader
+            from src.backend.svg_loader import SVGLoader
             loader = SVGLoader(tmp)
             loader.get_elements()   # warnings are filled during traversal
             self.assertIsInstance(loader.warnings, list)
@@ -108,8 +108,8 @@ class TestFractalZeroVariance(unittest.TestCase):
     """Bulgu 16: R2 must return NaN when fill counts have zero variance."""
 
     def _results(self, counts):
-        from backend.grid_planner import GridLevel
-        from backend.intersection_cpu import CPULevelResult
+        from src.backend.grid_planner import GridLevel
+        from src.backend.intersection_cpu import CPULevelResult
         items = []
         for i, cnt in enumerate(counts, start=1):
             rows = 2 ** i
@@ -127,13 +127,13 @@ class TestFractalZeroVariance(unittest.TestCase):
         return items
 
     def test_constant_counts_give_nan_r2(self):
-        from backend.fractal_analyzer import compute_fractal_dimension
+        from src.backend.fractal_analyzer import compute_fractal_dimension
         fa = compute_fractal_dimension(self._results([100, 100, 100, 100, 100]))
         self.assertTrue(math.isnan(fa.r2_score),
                         f"Expected NaN R2 on zero-variance data, got {fa.r2_score}")
 
     def test_varying_counts_give_finite_r2(self):
-        from backend.fractal_analyzer import compute_fractal_dimension
+        from src.backend.fractal_analyzer import compute_fractal_dimension
         fa = compute_fractal_dimension(self._results([10, 40, 160, 640, 2560]))
         self.assertFalse(math.isnan(fa.r2_score),
                          "Expected finite R2 on varying data, got NaN")

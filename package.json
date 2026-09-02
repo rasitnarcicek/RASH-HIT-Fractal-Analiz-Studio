@@ -1,12 +1,12 @@
 {
-  "name": "rash-hit-fractal-analiz-studio",
-  "version": "1.0.1",
-  "description": "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns.",
+  "name": "rash-hit-fractal-analysis",
+  "version": "1.2.0",
+  "description": "Pure NumPy supercover box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns — zero Shapely/GEOS dependency.",
   "main": "bin/cli.js",
   "bin": {
     "rash-hit-fractal": "bin/cli.js",
-    "rash-hit-fractal-studio": "bin/cli.js",
-    "rash-hit-fractal-analiz-studio": "bin/cli.js"
+    "rash-hit-fractal-analysis": "bin/cli.js",
+    "rash-hit": "bin/cli.js"
   },
   "scripts": {
     "start": "node bin/cli.js",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio.git"
+    "url": "git+https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analysis.git"
   },
   "keywords": [
     "fractal",
@@ -37,13 +37,18 @@
   "author": "Mehmet Raşit Narçiçek",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio/issues"
+    "url": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analysis/issues"
   },
-  "homepage": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio#readme",
+  "homepage": "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analysis#readme",
   "files": [
     "bin",
-    "backend",
+    "src",
     "run_analysis.py",
+    "launcher.py",
+    "RASH-HIT-Analysis.bat",
+    "setup.bat",
+    "setup.py",
+    "start.sh",
     "requirements.txt",
     "pyproject.toml",
     "README.md",

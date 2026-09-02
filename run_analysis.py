@@ -2,105 +2,105 @@
 # Copyright 2026 Mehmet Raşit Narçiçek
 
 """
-RASH-HIT Fractal Analiz Studio
-Version: 1.0.1
+RASH-HIT Fractal Analysis
+Version: 1.2.0
+
+This module is the public library surface (analyze_svg_data,
+print_analysis_report, write_analysis_file) — also a thin CLI wrapper
+that delegates the TUI menu and direct-mode entry points to
+``launcher.py``.  In every distribution channel, both
+``rash-hit-fractal`` (console script) and ``python run_analysis.py``
+end up at the same place.
 """
 
 import argparse
-import concurrent.futures
-import os
 import sys
-import time
 from pathlib import Path
-from typing import List, Dict, Any, Optional
 
-from backend.svg_loader import SVGLoader
-from backend.geometry_engine import extract_node_geometries, ParsedGeometry
-from backend.grid_planner import create_grid_plan
-from backend.intersection_cpu_area import analyze_grid_cpu_area
-from backend.fractal_analyzer import compute_fractal_dimension
+# src/ layout: run_analysis.py ve launcher.py proje kökündedir; paket
+# kodları src/ altındadır. Hem kök hem de src sys.path'e eklenir.
+_ROOT = Path(__file__).resolve().parent
+_SRC = _ROOT / "src"
+for _p in (str(_ROOT), str(_SRC)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+from src.backend.geometric_contact_pipeline import run_geometric_contact
+from src.backend.ascii_exporter import (
+    generate_ascii_file,
+    generate_batch_ascii_book,
+    build_output_filename,
+    build_book_filename,
+    now_stamp,
+)
+from src.backend import __version__ as VERSION, __engine_name__ as ENGINE_NAME
 
 
-def analyze_svg_data(input_file: str, levels: int = 7) -> Dict[str, Any]:
+def analyze_svg_data(input_file: str, levels: int = 7) -> dict:
     """
-    Executes exact vector geometry box-counting analysis on an SVG file in pure memory.
+    Executes box-counting analysis on an SVG file in pure memory.
+
+    v1.2.0: the single engine is the pure NumPy supercover engine
+    (geometric-contact semantics): open strokes are measured as their
+    supercover cell sets on a FIXED_ORIGIN integer lattice with the
+    touch_counts boundary policy. No Shapely/GEOS dependency.
     Returns structured results for zero-disk stdout reporting.
     """
     if levels < 1:
         return {"input_file": input_file, "error": f"Invalid --levels '{levels}'. Number of grid levels must be >= 1."}
 
+    from pathlib import Path
     input_path = Path(input_file)
     if not input_path.exists():
         return {"input_file": input_file, "error": f"Input file not found: {input_file}"}
 
-    # 1. Load SVG & extract geometries
     try:
-        loader = SVGLoader(str(input_path))
-        elements = loader.get_elements()
-        geoms: List[ParsedGeometry] = []
-        for node, style in elements:
-            geoms.extend(extract_node_geometries(node, style))
+        manifest = run_geometric_contact(input_path, max_level=levels)
     except Exception as e:
-        return {"input_file": input_file, "error": f"Failed to load or parse SVG file '{input_file}': {e}"}
-
-    vw, vh = loader.viewbox[2], loader.viewbox[3]
-
-    # 2. Create Grid Plan
-    grid_plan = create_grid_plan(loader.viewbox, vw, vh, num_levels=levels)
-
-    # 3. Execute Engine
-    t0_calc = time.perf_counter()
-    results = analyze_grid_cpu_area(geoms, grid_plan, return_cell_indices=False)
-    t1_calc = time.perf_counter()
-    calc_time_ms = (t1_calc - t0_calc) * 1000.0
-
-    # 4. Compute Fractal Dimension
-    fractal_res = compute_fractal_dimension(results)
+        return {"input_file": input_file, "error": f"Failed to run geometric-contact analysis on '{input_file}': {e}"}
 
     level_rows = []
-    for r in results:
+    for lv in range(1, levels + 1):
+        p = manifest["per_level"][str(lv)]
         level_rows.append({
-            "level_idx": r.level.level_idx,
-            "grid": f"{r.level.cols}x{r.level.rows}",
-            "total_cells": r.level.total_cells,
-            "filled_count": r.filled_count,
-            "empty_count": r.empty_count,
-            "fill_ratio": r.fill_ratio,
-            "execution_time_ms": r.execution_time_ms,
+            "level_idx": lv,
+            "grid": f"{p['cols']}x{p['rows']}",
+            "total_cells": p["total_cells"],
+            "filled_count": p["occupied_cells"],
+            "empty_count": p["empty_cells"],
+            "fill_ratio": p["occupancy_ratio"],
+            "execution_time_ms": 0.0,
         })
 
     return {
         "input_file": input_file,
         "motif_name": input_path.stem,
-        "vw": vw,
-        "vh": vh,
-        "geoms_count": len(geoms),
-        "calc_time_ms": calc_time_ms,
+        "vw": manifest["viewBox"][2],
+        "vh": manifest["viewBox"][3],
+        "geoms_count": manifest["segment_count"],
+        "calc_time_ms": manifest["total_compute_seconds"] * 1000.0,
         "levels": level_rows,
-        "fractal_db": fractal_res.fractal_dimension_db,
-        "r2_score": fractal_res.r2_score,
+        "fractal_db": manifest["fractal_dimension"],
+        "r2_score": manifest["r_squared"],
+        "engine_name": ENGINE_NAME,
+        "manifest": manifest,
         "error": None,
     }
 
 
-def _batch_worker(args_tuple):
-    file_path, levels = args_tuple
-    return analyze_svg_data(file_path, levels=levels)
-
-
-def print_analysis_report(data: Dict[str, Any]):
-    """Outputs the official RASH-HIT Fractal Analiz Studio ASCII analysis table to stdout."""
+def print_analysis_report(data: dict) -> None:
+    """Compact on-screen summary table for a single analysis result."""
     if data.get("error"):
         print(f"[ERROR] {data['error']}", file=sys.stderr)
         return
 
     print("+------------------------------------------------------------------------------+")
-    print("|               RASH-HIT FRACTAL ANALIZ STUDIO - ANALYSIS REPORT               |")
+    print("|               RASH-HIT FRACTAL ANALYSIS - ANALYSIS REPORT                 |")
     print("+------------------------------------------------------------------------------+")
     print(f"  Motif Loaded       : {data['motif_name']} ({data['vw']:.2f} x {data['vh']:.2f})")
     print(f"  Geometries         : {data['geoms_count']:,} vector elements")
     print("  Analysis Engine    : cpu")
-    print("  Selected Engine    : CPU Exact Vector Geometry Engine (Shapely/GEOS)")
+    print(f"  Selected Engine    : {data.get('engine_name', ENGINE_NAME)}")
     print("+------------------------------------------------------------------------------+")
     print("| Level | Grid     | Total Cells | Filled Cells | Empty Cells | Occupancy % | Time ms  |")
     print("+-------+----------+-------------+--------------+-------------+-------------+----------+")
@@ -119,54 +119,28 @@ def print_analysis_report(data: Dict[str, Any]):
     print("+------------------------------------------------------------------------------+")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="RASH-HIT Fractal Analiz Studio")
-    _input_group = parser.add_mutually_exclusive_group(required=False)
-    _input_group.add_argument("-i", "--input", type=str, help="Input SVG file path")
-    _input_group.add_argument("-d", "--dir", type=str, help="Directory path for batch processing all SVG files")
-    parser.add_argument("-l", "--levels", type=int, default=7, help="Number of grid levels (default: 7)")
-    parser.add_argument("-w", "--workers", type=int, default=None, help="Number of parallel worker processes for batch mode (default: auto)")
-    parser.add_argument("-v", "--version", action="version", version="RASH-HIT Fractal Analiz Studio v1.0.1")
+def write_analysis_file(data: dict, out_path, stamp: str | None = None):
+    """Write the per-motif ASCII report to ``out_path``."""
+    if data.get("error"):
+        return out_path
+    from pathlib import Path
+    manifest = data["manifest"]
+    levels = len(data["levels"])
+    return generate_ascii_file(
+        manifest=manifest,
+        motif_stem=data["motif_name"],
+        levels=levels,
+        out_path=Path(out_path),
+        stamp=stamp or now_stamp(),
+    )
 
-    args = parser.parse_args()
 
-    target_input = args.input or args.dir
-    if not target_input:
-        parser.print_help()
-        return
-
-    if args.levels < 1:
-        print(f"Error: Invalid --levels '{args.levels}'. Number of grid levels must be >= 1.", file=sys.stderr)
-        sys.exit(1)
-
-    target_path = Path(target_input)
-    if target_path.is_file():
-        result = analyze_svg_data(str(target_path), levels=args.levels)
-        print_analysis_report(result)
-        if result.get("error"):
-            sys.exit(1)
-    elif target_path.is_dir():
-        svg_files = sorted(list(target_path.glob("*.svg")))
-        if not svg_files:
-            print(f"[!] No SVG files found in directory: {target_path}", file=sys.stderr)
-            sys.exit(1)
-
-        print("+------------------------------------------------------------------------------+")
-        print(f"| BATCH PROCESSING MODE: {len(svg_files):<3} SVG Files Found                                   |")
-        print("+------------------------------------------------------------------------------+")
-
-        tasks = [(str(f), args.levels) for f in svg_files]
-        if len(svg_files) == 1:
-            res = analyze_svg_data(str(svg_files[0]), levels=args.levels)
-            print_analysis_report(res)
-        else:
-            with concurrent.futures.ProcessPoolExecutor(max_workers=args.workers) as executor:
-                for res in executor.map(_batch_worker, tasks):
-                    print_analysis_report(res)
-                    print()
-    else:
-        print(f"[ERROR] Path not found: {target_input}", file=sys.stderr)
-        sys.exit(1)
+def main() -> None:
+    """Delegate to launcher.main() so all channels behave identically."""
+    # Lazy import: launcher pulls in `rich` and the TUI flow; only when
+    # `python run_analysis.py` is invoked do we need it.
+    from launcher import main as launcher_main
+    raise SystemExit(launcher_main())
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
 import unittest
 import numpy as np
 
-from backend.geometry_engine import parse_transform_string, transform_points
+from src.backend.geometry_engine import parse_transform_string, transform_points
 
 
 class TestEngineAndFixes(unittest.TestCase):

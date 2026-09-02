@@ -11,7 +11,7 @@ import math
 from typing import List, Dict, Any
 import numpy as np
 
-from backend.intersection_cpu import CPULevelResult
+from src.backend.intersection_cpu import CPULevelResult  # type: ignore  # noqa: F401
 
 
 class FractalAnalysisResult:

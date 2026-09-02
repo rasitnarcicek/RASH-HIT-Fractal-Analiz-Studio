@@ -1,21 +1,15 @@
 # Third-Party Notices & Dependencies
 
-RASH-HIT Fractal Analiz Studio relies on third-party open-source computational software libraries. This document lists all dependencies, their licenses, and usage context.
+RASH-HIT Fractal Analysis relies on third-party open-source computational software libraries. This document lists all dependencies, their licenses, and usage context.
 
 ---
 
-## 1. Computational Geometry & Vector Processing
-
-### Shapely / GEOS
-- **Project**: Shapely
-- **License**: BSD 3-Clause License
-- **Upstream Engine**: GEOS (Geometry Engine - Open Source) - LGPL 2.1
-- **Notice**: Shapely/GEOS are used for exact vector intersection predicates.
+## 1. Numerical Computation
 
 ### NumPy
 - **Project**: NumPy
 - **License**: BSD 3-Clause License
-- **Usage**: Used for array operations, matrix grid indexing, and least-squares regression fitting.
+- **Usage**: The sole numerical dependency of the pure NumPy supercover engine (v1.2.0): fixed-point int64 lattice conversion, exact Liang-Barsky segment-box intersection, supercover cell set construction, and least-squares regression fitting. Runs entirely on the CPU — no GPU requirement.
 
 ---
 

@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from backend.svg_loader import (
+from src.backend.svg_loader import (
     SVGLoader,
     SVGNode,
     parse_css_style_block,

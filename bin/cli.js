@@ -7,8 +7,8 @@ const { spawnSync, spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const REQUIRED_PACKAGES = ['numpy>=1.24.0', 'shapely>=2.0.0', 'defusedxml>=0.7.1', 'tinycss2>=1.2.0'];
-const REQUIRED_MODULES = ['numpy', 'shapely', 'defusedxml', 'tinycss2'];
+const REQUIRED_PACKAGES = ['numpy>=1.24.0', 'defusedxml>=0.7.1', 'tinycss2>=1.2.0'];
+const REQUIRED_MODULES = ['numpy', 'defusedxml', 'tinycss2'];
 
 function findPythonCommand() {
   const candidates = process.platform === 'win32'
@@ -45,7 +45,7 @@ if missing:
 }
 
 function installDependencies(pythonCmd) {
-  console.log('\n📦 [RASH-HIT Fractal Analiz Studio] First-time setup: Installing required dependencies...');
+  console.log('\n📦 [RASH-HIT Fractal Analysis] First-time setup: Installing required dependencies...');
   console.log('   Dependencies: ' + REQUIRED_PACKAGES.join(', '));
 
   const pipArgs = ['-m', 'pip', 'install', '--quiet', ...REQUIRED_PACKAGES];
@@ -56,7 +56,7 @@ function installDependencies(pythonCmd) {
     console.error(`   Please run manually: ${pythonCmd} -m pip install -r requirements.txt\n`);
     process.exit(1);
   }
-  console.log('✅ [RASH-HIT Fractal Analiz Studio] Dependencies installed successfully.\n');
+  console.log('✅ [RASH-HIT Fractal Analysis] Dependencies installed successfully.\n');
 }
 
 function main() {
@@ -74,11 +74,22 @@ function main() {
   }
 
   const scriptPath = path.resolve(__dirname, '..', 'run_analysis.py');
+  const srcPath = path.resolve(__dirname, '..', 'src');
   const userArgs = process.argv.slice(2);
+
+  // src/ layout: Python child process'e PYTHONPATH ile kök + src ver.
+  const env = { ...process.env };
+  const pathSep = process.platform === 'win32' ? ';' : ':';
+  env.PYTHONPATH = [
+    path.resolve(__dirname, '..'),
+    srcPath,
+    env.PYTHONPATH || '',
+  ].filter(Boolean).join(pathSep);
 
   const child = spawn(pythonCmd, [scriptPath, ...userArgs], {
     stdio: 'inherit',
-    cwd: process.cwd()
+    cwd: process.cwd(),
+    env,
   });
 
   child.on('error', (err) => {

@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rash-hit-fractal-analiz-studio"
-version = "1.0.1"
-description = "Exact vector geometry box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns."
+name = "rash-hit-fractal-analysis"
+version = "1.2.0"
+description = "Pure NumPy supercover box-counting and fractal dimension (Db) analysis engine for SVG motifs, textile designs, and architectural patterns — zero Shapely/GEOS dependency."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
@@ -18,7 +18,8 @@ keywords = [
     "fractal-analysis",
     "svg-analysis",
     "vector-geometry",
-    "shapely",
+    "supercover",
+    "geometric-contact",
     "computational-geometry",
     "motif-analysis",
     "textile-design",
@@ -46,20 +47,20 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.24.0",
-    "shapely>=2.0.0",
     "defusedxml>=0.7.1",
     "tinycss2>=1.2.0",
+    "rich>=13.0.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio"
-Repository = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio"
-"Bug Tracker" = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analiz-Studio/issues"
+Homepage = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analysis"
+Repository = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analysis"
+"Bug Tracker" = "https://github.com/rasitnarcicek/RASH-HIT-Fractal-Analysis/issues"
 "Zenodo DOI" = "https://doi.org/10.5281/zenodo.22069941"
 
 [project.scripts]
 rash-hit-fractal = "run_analysis:main"
 
 [tool.setuptools]
-py-modules = ["run_analysis"]
+package-dir = { "" = "src" }
 packages = ["backend"]

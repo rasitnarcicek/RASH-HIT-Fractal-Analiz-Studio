@@ -2,15 +2,18 @@
 # Copyright 2026 Mehmet Raşit Narçiçek
 
 """
-intersection_cpu.py — CPU Exact Vector Geometry Box-Counting Engine.
-Uses Shapely 2.0 C++ vectorized STRtree spatial indexing to bulk-query grid cell boxes
-against exact polygon fills and buffered stroke lines.
+intersection_cpu.py — CPU result data models for box-counting levels.
+
+v1.2.0: holds the level/cell data structures consumed by the fractal analyzer
+(grid level results, per-cell debug records). The occupancy computation itself
+lives in the pure NumPy supercover engine (`supercover_reference.py` /
+`geometric_contact_pipeline.py`); no Shapely/GEOS dependency remains.
 """
 
 from __future__ import annotations
 from typing import List, Tuple, Dict, Any
 
-from backend.grid_planner import GridLevel
+from src.backend.grid_planner import GridLevel
 
 
 class CellDebugInfo:
